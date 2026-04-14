@@ -51,7 +51,7 @@ export const mySkitName: Skit = {
 ```ts
 {
   id: string,
-  sprite: 'male' | 'female',
+  sprite: 'dave' | 'alex' | 'boss' | 'janitor' | 'intern',
   name?: string,            // shown on speech bubble badge
   start: { x: number, y: number },
   facing?: 'down' | 'left' | 'right' | 'up',
@@ -73,7 +73,17 @@ export const mySkitName: Skit = {
 | `flash` | `startSec, endSec, color?` | Full-screen flash (default white) |
 | `tint` | `actorId, color, startSec, endSec` | Color glow on character |
 
-**Available voices (use `VOICE_IDS.<name>`):**
+**Recurring cast (use these for the "AI Taking My Job" series):**
+
+| Character | Sprite ID | Voice | Notes |
+|-----------|-----------|-------|-------|
+| Dave | `dave` | `VOICE_IDS.charlie` | Panicky everyman, the only human |
+| Alex | `alex` | `VOICE_IDS.jessica` | Calm, secretly AI (revealed pt 1) |
+| Gary (Boss) | `boss` | `VOICE_IDS.brian` | Authority figure, also AI |
+| Rosa (Janitor) | `janitor` | `VOICE_IDS.jessica` | Deadpan humor, casual AI reveal |
+| Mei (Intern) | `intern` | `VOICE_IDS.lily` | Nervous newcomer, available for future skits |
+
+**All available voices (use `VOICE_IDS.<name>`):**
 - Male: adam, bill, brian, callum, charlie, chris, daniel, eric, george, harry, liam, roger, will
 - Female: alice, bella, belle, ivy, jessica, laura, lily, lulu, matilda, sarah
 - Neutral: river

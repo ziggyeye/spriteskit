@@ -41,7 +41,7 @@ export const aiTakingMyJob: Skit = {
   actors: [
     {
       id: 'dave',
-      sprite: 'male',
+      sprite: 'dave',
       name: 'DAVE',
       start: { x: -200, y: FLOOR }, // offscreen left
       facing: 'right',
@@ -50,7 +50,7 @@ export const aiTakingMyJob: Skit = {
     },
     {
       id: 'alex',
-      sprite: 'female',
+      sprite: 'alex',
       name: 'ALEX',
       start: { x: 1280, y: FLOOR }, // offscreen right
       facing: 'left',

@@ -8,7 +8,7 @@
  * `Skit` object, then register it in Root.tsx. No rendering code required.
  */
 
-export type SpriteId = 'male' | 'female';
+export type SpriteId = 'dave' | 'alex' | 'boss' | 'janitor' | 'intern';
 
 export type Direction = 'down' | 'left' | 'right' | 'up';
 

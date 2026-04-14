@@ -6,8 +6,11 @@ const SPRITE_SIZE = 72;
 const FRAMES_PER_ROW = 4;
 
 const SPRITE_FILES: Record<SpriteId, string> = {
-  male: 'Character_024_Idle.png',
-  female: 'Character_035_Idle.png',
+  dave: 'Character_024_Idle.png',
+  alex: 'Character_035_Idle.png',
+  boss: 'FD_Character_001_Idle.png',
+  janitor: 'FD_Character_003_Idle.png',
+  intern: 'FD_Character_016_Idle.png',
 };
 
 const DIRECTION_ROWS: Record<Direction, number> = {

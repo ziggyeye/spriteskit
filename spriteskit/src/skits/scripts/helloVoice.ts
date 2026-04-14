@@ -34,7 +34,7 @@ export const helloVoice: Skit = {
   actors: [
     {
       id: 'speaker',
-      sprite: 'male',
+      sprite: 'dave',
       name: 'VOICE BOY',
       start: { x: CENTER, y: FLOOR },
       facing: 'down',
@@ -107,7 +107,7 @@ export const customAudioExample: Skit = {
   actors: [
     {
       id: 'narrator',
-      sprite: 'female',
+      sprite: 'alex',
       name: 'NARRATOR',
       start: { x: CENTER, y: FLOOR },
     },

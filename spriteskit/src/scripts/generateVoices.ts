@@ -11,6 +11,7 @@
 import 'dotenv/config';
 import { generateVoice } from '../services/voiceService';
 import { aiTakingMyJob } from '../skits/scripts/aiTakingMyJob';
+import { aiTakingMyJobPt2 } from '../skits/scripts/aiTakingMyJobPt2';
 import type { Skit } from '../skits/types';
 
 async function generateVoicesForSkit(skit: Skit) {
@@ -46,4 +47,9 @@ async function generateVoicesForSkit(skit: Skit) {
   console.log('Done! Voice files saved to public/voices/');
 }
 
-generateVoicesForSkit(aiTakingMyJob);
+async function main() {
+  await generateVoicesForSkit(aiTakingMyJob);
+  await generateVoicesForSkit(aiTakingMyJobPt2);
+}
+
+main();
