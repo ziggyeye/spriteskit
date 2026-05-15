@@ -23,6 +23,7 @@ import { generateVoice } from '../services/voiceService';
 import { aiTakingMyJob } from '../skits/scripts/aiTakingMyJob';
 import { aiTakingMyJobPt2 } from '../skits/scripts/aiTakingMyJobPt2';
 import { lastSongRemembered } from '../skits/scripts/lastSongRemembered';
+import { areYouOkay } from '../skits/scripts/areYouOkay';
 import { visemeKey } from '../skits/withVisemes';
 import type { VisemeFrame } from '../skits/assets';
 import type { Skit } from '../skits/types';
@@ -33,6 +34,7 @@ const SKITS: SkitEntry[] = [
   { skit: aiTakingMyJob, outFile: 'src/skits/scripts/aiTakingMyJob.visemes.ts' },
   { skit: aiTakingMyJobPt2, outFile: 'src/skits/scripts/aiTakingMyJobPt2.visemes.ts' },
   { skit: lastSongRemembered, outFile: 'src/skits/scripts/lastSongRemembered.visemes.ts' },
+  { skit: areYouOkay, outFile: 'src/skits/scripts/areYouOkay.visemes.ts' },
 ];
 
 async function generateVoicesForSkit({ skit, outFile }: SkitEntry) {

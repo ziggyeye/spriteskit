@@ -105,6 +105,7 @@ Cute / hype:
 
 The rig has 1 top + 1 bottom + 2 hair + 2 beard. Cross-actor variety
 comes from:
+
 1. **Skin tone** — 6 options. Pick distinct ones per actor.
 2. **Hair colour** — 16 options. Pair with hair mesh choice.
 3. **Clothing colour** — assign different Swatch Colour PNGs per actor.
@@ -112,10 +113,50 @@ comes from:
    gives the visual difference between "male coworker" and "female
    coworker" etc.
 
-NOTE: per-actor texture overrides (skin/hair/clothing colour) are NOT
-fully wired into the Outfit schema as of writing. Flag this in your
-output if your concept depends on it — the user may need to extend
-Outfit before authoring the skit.
+## Parts system: clothes, hair, accessories, and held items
+
+The base rig is `Character_Talking.fbx` (Lips-Pack) which natively
+ships only 1 top, 1 bottom, 2 hair styles, 2 beards. At runtime we
+**attach additional meshes from the Characters-Pack parts FBXs**
+(`Hair_All.fbx`, `Clothes_All.fbx`, `Accessories_All.fbx`,
+`Items_All.fbx`) by rebinding their skeletons to the base rig. All
+four parts FBXs share the same 53-bone skeleton, so attachment is
+clean.
+
+**Available outfit slots** (see `Outfit` in `src/skits/assets.ts`):
+
+- **`top`**: Tshirt, Tshirt_V, Hoodie, Sweater_TurtleNeck, CollarShirt_Long,
+  CollarShirt_Tucked, CollarBlouse_Long, CollarBlouse_Short (8 options).
+- **`bottom`**: Pants_Long, Pants_Short_Pockets, Skirt, Skirt_Long (4 options).
+- **`hair`**: Short, ShortBob, ShortSpiky, SideSweep, Long, Ponytail,
+  Ponytail_Tight, Pigtails, Bun_Big, Bun_Small, Hijab, Senior_A, Senior_B,
+  Shave_AfroTop, Shave_BuzzAfro, Shave_Buzzcut, Shave_Swept (17 options).
+- **`beard`**: Full, Lower (2 options).
+- **`apron`**: Short, Long (2 options).
+- **`accessory`**: Glasses, Headphones_black/blue/pink/red/yellow, Hair_Acc_Band
+  (7 options).
+- **`held`**: Tray, Cupcake_Bubblegum/Matcha/Orange/RedVelvet, Coffee_Full,
+  Coffee_Whip, Milkshake_Chocolate/Empty/Matcha/Strawberry,
+  set_1/2/3_Cup, set_1/2/3_Plate (17 options).
+
+All of these slots are SAFE TO USE in any skit. Lip-sync still works
+(face submeshes are on the base rig).
+
+### CAVEAT: held items position quirk
+
+Held items (`held_Tray`, `held_Coffee_*`, etc.) are skinned to special
+`held_item_*` bones in the rig. The asset pack expects you to use
+specific cafe animations (`Tray_Walk`, `Sofa_Cup_Pickup`, etc.) that
+keyframe those bones. The Lips-Pack rig has NO such animations.
+
+The engine works around this by reparenting the `held_item_*` bones to
+`hand_palmR` at clone time — so held items follow the right hand for
+free. **Result:** held items DO render and follow the hand, but they
+sit at the palm in a fixed orientation. Don't rely on intricate
+hand poses for held items; they hover near the right palm.
+
+If a held item really matters for a skit, propose it but flag that
+the visual fidelity is "decent, not perfect". It works.
 
 ## How to respond
 

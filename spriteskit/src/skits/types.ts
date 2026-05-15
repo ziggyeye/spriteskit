@@ -17,7 +17,23 @@ import type { ClipName, EyeSprite, Outfit, VisemeFrame } from './assets';
  */
 export type SpriteId = 'dave' | 'alex' | 'boss' | 'janitor' | 'intern';
 
-export type Direction = 'down' | 'left' | 'right' | 'up';
+/**
+ * Discrete actor facing direction. Cardinal directions snap to 0/90/180/270°
+ * yaw; the diagonal directions are 45° offsets toward the named corner.
+ *
+ * Use diagonals when two actors are talking — `down-left` for the actor
+ * on the right, `down-right` for the actor on the left, so each faces
+ * the camera-friendly side AND angles toward the other actor.
+ */
+export type Direction =
+  | 'down'
+  | 'down-left'
+  | 'down-right'
+  | 'left'
+  | 'right'
+  | 'up'
+  | 'up-left'
+  | 'up-right';
 
 export type Background =
   | { kind: 'gradient'; colors: [string, string] }

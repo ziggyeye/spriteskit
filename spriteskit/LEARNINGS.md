@@ -61,9 +61,64 @@ Its `Body_Head` has `M_Skin` + `M_Eyes` material slots with UVs already
 hand-mapped to specific sprite regions of `T_EyesTexture.png`. Those UVs
 span `u=[0, 0.25], v=[0.75, 1.0]` — a single closed-eye cell.
 
-If you switch back to `Character_All.fbx` for outfit variety, you'll need
-bone-remapping (Lips-Pack ships a Unity helper for this; would need a
-three.js port) to attach the face meshes to the larger rig.
+So for the face system, we MUST use the Lips-Pack rig. But for outfit
+variety, we want the Characters-Pack's 60+ extra meshes. The fix is
+the parts-attach trick below — no rig swap needed.
+
+### Parts FBXs share the base rig's skeleton — attach via bone rebind
+
+The Characters-Pack ships standalone parts FBXs:
+
+- `Hair_All.fbx` — 17 hair styles + 2 beards
+- `Clothes_All.fbx` — 8 tops, 4 bottoms, 2 aprons
+- `Accessories_All.fbx` — glasses, 5 headphone colours, headband
+- `Items_All.fbx` — 17 held items (trays, cups, plates, food, drinks)
+
+**Critically: all four share the same 53-bone skeleton as the
+Lips-Pack `Character_Talking.fbx` rig (verified by name).** So we
+can attach a parts SkinnedMesh to our rig by:
+
+1. Loading the parts FBX and harvesting each `SkinnedMesh` into a
+   module-level `partsCache` map.
+2. At rig-clone time, for each cached part: `partMesh = source.clone()`,
+   then **`partMesh.bind(new Skeleton(remappedBones, source.skeleton.boneInverses), partMesh.matrixWorld)`**
+   where `remappedBones` is the source's bones mapped through
+   `cloneBones.get(boneName)` to use OUR clone's bones.
+3. `root.add(partMesh)` and set `visible = false` by default; the
+   existing outfit-visibility loop turns the right ones on per actor.
+
+See the parts attach block in [Character3D.tsx](src/components/Character3D.tsx).
+**The skeleton rebind is the key trick.** Without it, the part still
+references the source FBX's bones and animates with a phantom rig.
+
+### Held items need their bones reparented to a hand
+
+The Lips-Pack rig has `held_item_tray`, `held_item_plate`,
+`held_item_drink_food` bones — but they're parented directly to
+`Root` at world origin, not to a hand. The Characters-Pack expects
+its cafe animations (Tray_Walk, Sofa_Cup_Pickup, etc.) to keyframe
+those bones. We don't have those animations on the Lips-Pack rig.
+
+**Fix at clone time:** find the held_item_* bones in the cloned
+skeleton and **reparent them to `hand_palmR`**:
+
+```ts
+const rightPalm = cloneBones.get('hand_palmR');
+for (const name of ['held_item_tray', 'held_item_plate', 'held_item_drink_food']) {
+  const bone = cloneBones.get(name);
+  if (rightPalm && bone) {
+    rightPalm.attach(bone);   // preserves world transform
+    bone.position.set(0, 0, 0);
+    bone.rotation.set(0, 0, 0);
+  }
+}
+```
+
+Result: held items follow the right hand for free, without needing
+the cafe animation library. Position fidelity is "decent, not
+perfect" — the items sit at the palm in a fixed orientation. Good
+enough for most skits; if you need precise pickup/serve motion,
+borrow the actual cafe animation clips from `Character_All.fbx`.
 
 ## Async loading + Remotion's `delayRender`
 
@@ -122,7 +177,7 @@ landscape canvas (aspect > 1), horizontal fov is WIDER than vertical. On a
 
 Formula for visible horizontal width at distance `d`:
 
-```
+```text
 horizontalVisible = 2 * d * tan(fovV / 2) * (W / H)
                   = 2 * d * tan(fovV / 2) * 0.5625    [for 1080×1920]
 ```
@@ -151,6 +206,21 @@ horizon. Default `up = [0, 1, 0]` keeps horizons level. To roll the camera,
 set `cam.up.set(x, y, z)` BEFORE the `lookAt` call. We added an optional
 `up` field on `CameraState` for this.
 
+### Diagonal facing reads better for two-character dialogue
+
+We started with 4-direction facing (`down` / `up` / `left` / `right`).
+For dialogue:
+
+- `down` (head-on to camera) reads as "staring into the void" — fine
+  for solo monologue, weird for a conversation.
+- Cardinal `left` / `right` shows the actor in pure profile, ignoring
+  the camera entirely. Reads as "in their own world".
+
+The schema now supports 8 directions including diagonals. **Use
+`down-left` for the actor on the right side of frame and `down-right`
+for the actor on the left.** Both face camera-friendly AND turn
+slightly toward the other actor. Reads as natural conversation.
+
 ## Animation timing
 
 ### Default `clipTime: 0` freezes the actor
@@ -174,6 +244,30 @@ Space blinks every 4-6 seconds for a calm scene, 2-3 seconds for an alert one.
 
 ## ElevenLabs API gotchas
 
+### ElevenLabs alignment is character-level; we need phoneme-level for real lip-sync
+
+ElevenLabs `/with-timestamps` returns `alignment.characters[]` —
+each letter of the spoken text with start/end timing. Mapping
+letters → visemes (e.g. `s → Lips_14`) is **wrong** because spoken
+English doesn't pronounce letters one-to-one. "She" is `/ʃiː/` — two
+phonemes (`SH`, `IY`), three characters (`s`, `h`, `e`). Letter
+mapping puts `s` then `h` then `e` shapes on the mouth; phoneme
+mapping puts `SH` then `IY` shapes. The second is visibly more
+accurate.
+
+**Fix** (`voiceService.ts:alignmentToVisemes`):
+
+1. Tokenize text into words.
+2. For each word, look up phonemes in `cmu-pronouncing-dictionary`
+   (134k entries, returns ARPAbet like `HH AH0 L OW1` for "hello").
+3. Strip CMU's stress digits (0/1/2).
+4. Distribute the word's audio duration proportionally across its
+   phonemes.
+5. Map each phoneme through `ARPABET_TO_VISEME` (derived from
+   `Lips_Legend.png`) to a `Lips_NN.png` frame.
+
+Words not in the dictionary fall back to the letter heuristic.
+
 ### `Buffer.from(...).toString('base64').slice(0, 24)` collides on long shared prefixes
 
 The original `visemeKey` hashed `${voiceId}:${text}` with base64 then sliced
@@ -196,6 +290,7 @@ humming a melody" + "child humming the same melody" produces two unrelated
 tunes.
 
 **Workarounds:**
+
 1. Single longer prompt with both parts ("an old man hums, then a young
    girl hums the same melody back") — one API call.
 2. Generate the elder hum, pitch-shift it offline for the child via ffmpeg.
@@ -210,6 +305,7 @@ quiet (peaks near -20 to -30 dBFS). Setting `volume: 1.0` on both makes the
 SFX inaudible under the voice.
 
 **Fixes (in order of preference):**
+
 1. **Drop the voice** to ~0.5 and **amplify the SFX** with `volume > 1.0`
    plus `allowAmplificationDuringRender` on the `<Audio>` component.
    Default Remotion clamps volume to 1.0; the prop unlocks > 1.
@@ -235,12 +331,96 @@ the bundled `public/` dir. `audioUrl: '/voices/foo.mp3'` → 404. Wrap with
 `staticFile(...)` (strip the leading `/` first) in `withVisemes` so all
 generated URLs resolve to the bundled location.
 
+### Never hardcode `audioUrl` on `speak` actions
+
+The skit source file should NEVER have `audioUrl: staticFile('voices/...')`
+baked in. The voice generator owns the filename — its hashing scheme can
+change (and has: from truncated-base64 → SHA-256 partway through this
+project). Old hardcoded paths become 404s that surface as
+`NotSupportedError` in the renderer (Remotion's `<Audio>` throws when it
+can't decode what the fetch returned).
+
+**Fix:** let `withVisemes(skit, visemes)` inject the `audioUrl` from the
+generated `.visemes.ts` module. The skit author only writes `voiceId` and
+`text` on each speak action — never `audioUrl`.
+
 ### `face` actions are instant, not tweened
 
 The `face` action snaps direction at `atSec`. There's no smooth rotation
 tween. If you need a turn over 0.5s, you'd need a new action variant. So
 far we haven't needed it; characters either face the camera (`down`) or
 face each other in dialogue, and instant snaps look fine on TikTok.
+
+### `animate` with `loop: true` restarts every clip-length and looks like a glitch
+
+Most FBX clips on the Lips-Pack rig are 0.8–1.7 seconds long. With
+`loop: true` on a 10-second window, the clip restarts 6+ times — each
+restart is a hard pose jump that reads as the actor twitching.
+
+### One-shot `animate` with `loop: false` falls back to IDLE, not a frozen pose
+
+Originally we let `loop: false` clamp the mixer at the clip's last
+frame — but that left actors frozen mid-gesture. Worse, three.js's
+mixer without `clampWhenFinished = true` collapses to bind pose
+(near-T-pose) once `clipTime > duration`.
+
+**The renderer now implements a continuous fallback:**
+
+- If `clipTime <= clipObj.duration`, play the requested clip at that
+  time (works for both looping and one-shot).
+- If a one-shot clip has finished, **automatically switch to the
+  looping idle** (`React_Stand_Discussion_1`) and advance its
+  `clipTime` by the time since the clip ended (modulo the idle's
+  duration).
+- Set `action.clampWhenFinished = true` defensively in case we
+  ever fall through with no idle clip available.
+
+Result: actors never freeze, never T-pose. Use `loop: true` for
+ambient idles that should keep playing forever (Discussion idles).
+Use `loop: false` for one-shot gestures (Wave, ThumbsUp, Handshake) —
+the engine smoothly returns to idle afterward. See the mixer step
+block in [Character3D.tsx](src/components/Character3D.tsx).
+
+### Remaining limit: animation library
+
+After the parts-attach work, we have the full Characters-Pack mesh
+library (8 tops, 4 bottoms, 17 hair, 2 beards, 2 aprons, 7
+accessories, 17 held props) running on the Lips-Pack rig's face +
+lip-sync system.
+
+The remaining limit is the **animation library** — we still only have
+the Lips-Pack's 17 talking-head clips. The Characters-Pack's 43 cafe
+animations (sit/eat/drink/serve/Tray_Walk/Sofa_Cup_Pickup) live in
+`Character_All.fbx` which we don't load. To unlock those, harvest
+`AnimationClip` objects from a loaded Characters-Pack FBX and push
+them onto the Lips-Pack mixer:
+
+```ts
+const cafeFbx = await new FBXLoader().loadAsync(staticFile('models/Character_All.fbx'));
+for (const clip of cafeFbx.animations) {
+  if (!ourClips[clip.name]) ourClips[clip.name] = clip;
+}
+```
+
+The skeletons are bone-compatible so the clips drive the Lips-Pack
+rig's bones directly. Not done yet — flag it when a skit really
+needs sit/eat/drink motion.
+
+### Every skit should look DIFFERENT from the last
+
+The "safe" formula — *medium two-shot → push on A → cut to push on B
+→ ECU on B → back to two-shot → push on A* — is the engine's path
+of least resistance, and it produces skits that all feel the same.
+
+Cinematic comedy demands **angle variety**. Before authoring a new
+skit, audit the previous skit's angle vocabulary (eye-level / Dutch /
+push / cut). Then deliberately commit to a DIFFERENT palette: high
+isometric, worm's-eye, bird's-eye, behind-shoulder, hard cuts
+between extreme angles, etc.
+
+The brainstorm agents (`cinematic-shot-designer.md`) now bake this
+in — but the principle is: **the engine is 3D, the camera is free,
+use it**. Don't default to eye-level.
 
 ## Subagents
 
@@ -251,8 +431,8 @@ The Agent tool's `subagent_type` parameter only knows built-in agent types
 definitions at `.claude/agents/<name>.md` are NOT auto-discovered as
 selectable subagent types in this environment.
 
-**Workaround:** spawn `general-purpose` agents and prepend "Read
-.claude/agents/<name>.md for your role brief" to the prompt. The agent reads
+**Workaround:** spawn `general-purpose` agents and prepend `"Read
+.claude/agents/<name>.md for your role brief"` to the prompt. The agent reads
 the brief and follows it. Slightly less ergonomic; same effect.
 
 ## Process

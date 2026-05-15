@@ -26,20 +26,96 @@ export type ClipName =
   | 'React_Jump_Joy'
   | '0TPose';
 
-/** The Character_Talking FBX has a much smaller outfit set than the
- * full Characters-Pack. Only one top, one bottom, two hair styles, two
- * beards. */
-export type TopMesh = 'Clothes_Top_Tshirt';
-export type BottomMesh = 'Clothes_Legs_Pants_Long';
-export type HairMesh = null | 'Hair_Short' | 'Hair_Ponytail';
+/**
+ * Outfit slots. The base rig is `Character_Talking.fbx` (Lips-Pack)
+ * which natively ships with: 1 top (Tshirt), 1 bottom (Pants_Long),
+ * 2 hair styles, 2 beards.
+ *
+ * Additional meshes are loaded from the Characters-Pack PARTS FBXs
+ * (`Hair_All.fbx`, `Clothes_All.fbx`, `Accessories_All.fbx`,
+ * `Items_All.fbx`) and attached to the same skeleton at runtime
+ * — see `loadParts()` in `src/components/Character3D.tsx`.
+ *
+ * Every mesh in this union exists in one of those FBXs. The renderer
+ * picks meshes by name and toggles visibility per actor.
+ */
+
+/** Top clothing (Lips-Pack ships Tshirt; rest come from Clothes_All.fbx). */
+export type TopMesh =
+  | 'Clothes_Top_Tshirt'
+  | 'Clothes_Top_Tshirt_V'
+  | 'Clothes_Top_Hoodie'
+  | 'Clothes_Top_Sweater_TurtleNeck'
+  | 'Clothes_Top_CollarShirt_Long'
+  | 'Clothes_Top_CollarShirt_Tucked'
+  | 'Clothes_Top_CollarBlouse_Long'
+  | 'Clothes_Top_CollarBlouse_Short';
+
+/** Bottoms — pants/skirts (Lips-Pack ships Pants_Long). */
+export type BottomMesh =
+  | 'Clothes_Legs_Pants_Long'
+  | 'Clothes_Legs_Pants_Short_Pockets'
+  | 'Clothes_Legs_Skirt'
+  | 'Clothes_Legs_Skirt_Long';
+
+/** Hair styles — 18 options from Hair_All.fbx + 2 from Lips-Pack. */
+export type HairMesh =
+  | null
+  | 'Hair_Short'
+  | 'Hair_ShortBob'
+  | 'Hair_ShortSpiky'
+  | 'Hair_SideSweep'
+  | 'Hair_Long'
+  | 'Hair_Ponytail'
+  | 'Hair_Ponytail_Tight'
+  | 'Hair_Pigtails'
+  | 'Hair_Bun_Big'
+  | 'Hair_Bun_Small'
+  | 'Hair_Hijab'
+  | 'Hair_Senior_A'
+  | 'Hair_Senior_B'
+  | 'Hair_Shave_AfroTop'
+  | 'Hair_Shave_BuzzAfro'
+  | 'Hair_Shave_Buzzcut'
+  | 'Hair_Shave_Swept';
+
+/** Beards. */
 export type BeardMesh = null | 'Beard_Full' | 'Beard_Lower';
 
-// These slots are kept in the type for source-compatibility with the
-// older Characters-Pack outfit schema, but the talking model has no
-// meshes for them. Setting them is a no-op.
-export type ApronMesh = null;
-export type AccessoryMesh = null;
-export type HeldMesh = null;
+/** Aprons (over the top). */
+export type ApronMesh = null | 'Clothes_Apron_Short' | 'Clothes_Apron_Long';
+
+/** Head accessories (glasses, headphones, headband). */
+export type AccessoryMesh =
+  | null
+  | 'Accessory_Glasses'
+  | 'Accessory_Headphones_black'
+  | 'Accessory_Headphones_blue'
+  | 'Accessory_Headphones_pink'
+  | 'Accessory_Headphones_red'
+  | 'Accessory_Headphones_yellow'
+  | 'Hair_Acc_Band';
+
+/** Held items / props attached to the hand. */
+export type HeldMesh =
+  | null
+  | 'held_Tray'
+  | 'held_Cupcake_Bubblegum'
+  | 'held_Cupcake_Matcha'
+  | 'held_Cupcake_Orange'
+  | 'held_Cupcake_RedVelvet'
+  | 'held_Coffee_Full'
+  | 'held_Coffee_Whip'
+  | 'held_Milkshake_Chocolate'
+  | 'held_Milkshake_Empty'
+  | 'held_Milkshake_Matcha'
+  | 'held_Milkshake_Strawberry'
+  | 'held_set_1_Cup'
+  | 'held_set_2_Cup'
+  | 'held_set_3_Cup'
+  | 'held_set_1_Plate'
+  | 'held_set_2_Plate'
+  | 'held_set_3_Plate';
 
 /**
  * Skin tone swatches from `assets/Lips-Pack/Textures/Skintones/`.
@@ -123,33 +199,56 @@ export type Outfit = {
   legColor?: ClothingColor;
   /** Shoes clothing swatch. Defaults to Espresso. */
   shoesColor?: ClothingColor;
+  /** Apron clothing swatch. Defaults to Whipped_Cream. Only relevant if `apron` is set. */
+  apronColor?: ClothingColor;
 };
 
 /**
- * The 20 mouth shapes from the Lips-Pack `Mouth_Simplified` set.
- * Names match the filenames so we can build the texture URL directly.
+ * The 30 mouth shapes from the Lips-Pack `Mouth_Sprites` (detailed) set.
+ * Names match the filenames in `public/sprites/lips/`. Frames 00–20 are
+ * phoneme visemes — see Lips_Legend.png in the asset pack. Frames 21–29
+ * are emotion mouths used independently of speech.
+ *
+ * Phoneme mapping (legend):
+ *   00 — closed/rest                01 — æ, ə, ʌ     02 — a, aɪ
+ *   03 — ɔ                          04 — ɛ, ʊ        05 — ɝ
+ *   06 — j, i, ɪ                    07 — w, u        08 — o
+ *   09 — aʊ                         10 — ɔɪ          11 — h
+ *   12 — ɹ                          13 — L           14 — s, z
+ *   15 — ʃ, tʃ, dʒ, ʒ               16 — ð           17 — f, v
+ *   18 — d, t, n, θ                 19 — k, g, ŋ     20 — p, b, m
  */
 export type Viseme =
-  | 'Lips_s00_Default'
-  | 'Lips_s01_sh-ch'
-  | 'Lips_s02_a-i'
-  | 'Lips_s03_ah-i'
-  | 'Lips_s04_th'
-  | 'Lips_s05_e-k-r'
-  | 'Lips_s06_s-z'
-  | 'Lips_s07_m-b-p'
-  | 'Lips_s08_f-v'
-  | 'Lips_s09_L'
-  | 'Lips_s10_oh'
-  | 'Lips_s11_o-u-w'
-  | 'Lips_s12_Upset'
-  | 'Lips_s13_Sad'
-  | 'Lips_s14_Angry'
-  | 'Lips_s15_Thinking'
-  | 'Lips_s16_Cheeky'
-  | 'Lips_s17_Cute'
-  | 'Lips_s18_Surprised'
-  | 'Lips_s19_Confused';
+  | 'Lips_00'
+  | 'Lips_01'
+  | 'Lips_02'
+  | 'Lips_03'
+  | 'Lips_04'
+  | 'Lips_05'
+  | 'Lips_06'
+  | 'Lips_07'
+  | 'Lips_08'
+  | 'Lips_09'
+  | 'Lips_10'
+  | 'Lips_11'
+  | 'Lips_12'
+  | 'Lips_13'
+  | 'Lips_14'
+  | 'Lips_15'
+  | 'Lips_16'
+  | 'Lips_17'
+  | 'Lips_18'
+  | 'Lips_19'
+  | 'Lips_20'
+  | 'Lips_21_Upset'
+  | 'Lips_22_Sad'
+  | 'Lips_23_Angry'
+  | 'Lips_24_Thinking'
+  | 'Lips_25_Cheeky'
+  | 'Lips_26_Smiley'
+  | 'Lips_27_Cute'
+  | 'Lips_28_Suprized'
+  | 'Lips_29_Confused';
 
 export type EyeSprite =
   | 'Eye_0_Default'
@@ -230,37 +329,102 @@ export const EYE_HEARTS_PULSE: readonly EyeSprite[] = [
 ] as const;
 
 /**
- * Letter → simplified viseme. Used by the voice generator to convert
- * ElevenLabs character-level alignment into a viseme track. Lowercase only.
- * Anything not in the map falls back to Lips_s00_Default (mouth closed).
+ * ARPAbet phoneme → detailed viseme frame, derived from the asset pack's
+ * Lips_Legend.png. ARPAbet is the CMU Pronouncing Dictionary's ASCII
+ * notation (each phoneme is 1-3 uppercase letters; stress digits 0/1/2
+ * are stripped before lookup).
+ *
+ * The voice generator pipeline:
+ *   1. ElevenLabs returns character-level audio timing.
+ *   2. We look up each word's phoneme sequence via cmu-pronouncing-dictionary.
+ *   3. We proportionally split the word's audio time among its phonemes.
+ *   4. We map each phoneme through this table to a `Lips_NN` frame.
+ *
+ * Words not in the CMU dictionary fall back to a heuristic letter-by-
+ * letter mapping (see voiceService.ts).
+ */
+export const ARPABET_TO_VISEME: Record<string, Viseme> = {
+  // 01 — æ, ə, ʌ
+  AE: 'Lips_01',
+  AH: 'Lips_01',
+  UH: 'Lips_01',
+  // 02 — a, aɪ
+  AA: 'Lips_02',
+  AY: 'Lips_02',
+  // 03 — ɔ
+  AO: 'Lips_03',
+  // 04 — ɛ, ʊ  (we collapse ʊ here even though ARPAbet UH already → 01;
+  // EH gets its own frame which differentiates the 'bed' shape.)
+  EH: 'Lips_04',
+  // 05 — ɝ (er)
+  ER: 'Lips_05',
+  // 06 — j, i, ɪ
+  Y: 'Lips_06',
+  IY: 'Lips_06',
+  IH: 'Lips_06',
+  // 07 — w, u
+  W: 'Lips_07',
+  UW: 'Lips_07',
+  // 08 — o
+  OW: 'Lips_08',
+  // 09 — aʊ
+  AW: 'Lips_09',
+  // 10 — ɔɪ
+  OY: 'Lips_10',
+  // 11 — h
+  HH: 'Lips_11',
+  // 12 — ɹ
+  R: 'Lips_12',
+  // 13 — L
+  L: 'Lips_13',
+  // 14 — s, z
+  S: 'Lips_14',
+  Z: 'Lips_14',
+  // 15 — ʃ, tʃ, dʒ, ʒ
+  SH: 'Lips_15',
+  CH: 'Lips_15',
+  JH: 'Lips_15',
+  ZH: 'Lips_15',
+  // 16 — ð
+  DH: 'Lips_16',
+  // 17 — f, v
+  F: 'Lips_17',
+  V: 'Lips_17',
+  // 18 — d, t, n, θ
+  D: 'Lips_18',
+  T: 'Lips_18',
+  N: 'Lips_18',
+  TH: 'Lips_18',
+  // 19 — k, g, ŋ
+  K: 'Lips_19',
+  G: 'Lips_19',
+  NG: 'Lips_19',
+  // 20 — p, b, m
+  P: 'Lips_20',
+  B: 'Lips_20',
+  M: 'Lips_20',
+};
+
+/**
+ * Fallback letter → viseme map for words not in the CMU dictionary.
+ * Used when the G2P lookup fails. Less accurate than the ARPAbet path
+ * but better than dropping the line.
  */
 export const LETTER_TO_VISEME: Record<string, Viseme> = {
-  m: 'Lips_s07_m-b-p',
-  b: 'Lips_s07_m-b-p',
-  p: 'Lips_s07_m-b-p',
-  f: 'Lips_s08_f-v',
-  v: 'Lips_s08_f-v',
-  c: 'Lips_s01_sh-ch',
-  t: 'Lips_s04_th',
-  d: 'Lips_s04_th',
-  s: 'Lips_s06_s-z',
-  z: 'Lips_s06_s-z',
-  l: 'Lips_s09_L',
-  e: 'Lips_s05_e-k-r',
-  k: 'Lips_s05_e-k-r',
-  r: 'Lips_s05_e-k-r',
-  a: 'Lips_s02_a-i',
-  i: 'Lips_s02_a-i',
-  h: 'Lips_s03_ah-i',
-  o: 'Lips_s10_oh',
-  u: 'Lips_s11_o-u-w',
-  w: 'Lips_s11_o-u-w',
-  n: 'Lips_s05_e-k-r',
-  g: 'Lips_s05_e-k-r',
-  j: 'Lips_s01_sh-ch',
-  q: 'Lips_s11_o-u-w',
-  x: 'Lips_s06_s-z',
-  y: 'Lips_s02_a-i',
+  m: 'Lips_20', b: 'Lips_20', p: 'Lips_20',
+  f: 'Lips_17', v: 'Lips_17',
+  s: 'Lips_14', z: 'Lips_14', x: 'Lips_14',
+  c: 'Lips_19', k: 'Lips_19', g: 'Lips_19', q: 'Lips_19',
+  t: 'Lips_18', d: 'Lips_18', n: 'Lips_18',
+  l: 'Lips_13',
+  r: 'Lips_12',
+  h: 'Lips_11',
+  j: 'Lips_15',
+  w: 'Lips_07', u: 'Lips_07',
+  o: 'Lips_08',
+  i: 'Lips_06', y: 'Lips_06',
+  a: 'Lips_02',
+  e: 'Lips_04',
 };
 
 /** A single viseme keyframe — show `viseme` from `startSec` until the next entry's start. */

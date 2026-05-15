@@ -1,13 +1,19 @@
 /**
  * Voice synthesis + lip-sync alignment via ElevenLabs.
  *
- * Usage:
- * - Set ELEVENLABS_API_KEY in your .env file.
- * - Call generateVoice() to generate audio + viseme JSON for one line.
- * - At skit-author time, read the viseme JSON and attach it to the `visemes`
- *   field on the matching speak action.
+ * Pipeline:
+ *   1. ElevenLabs `/with-timestamps` → audio + character-level alignment.
+ *   2. Tokenize the spoken text into words.
+ *   3. Look up each word's phoneme sequence in the CMU Pronouncing
+ *      Dictionary (ARPAbet).
+ *   4. Distribute the word's audio duration proportionally across its
+ *      phonemes.
+ *   5. Map each phoneme through ARPABET_TO_VISEME (derived from
+ *      Lips_Legend.png) to get a detailed mouth-frame timeline.
  *
- * For each unique (voiceId, text) pair we write:
+ * Words not in the dictionary fall back to a letter-by-letter heuristic.
+ *
+ * Outputs (per unique (voiceId, text) pair):
  *   public/voices/{hash}.mp3
  *   public/voices/{hash}.visemes.json
  */
@@ -16,7 +22,9 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import fetch from 'node-fetch';
+import { dictionary as cmuDictionary } from 'cmu-pronouncing-dictionary';
 import {
+  ARPABET_TO_VISEME,
   LETTER_TO_VISEME,
   type Viseme,
   type VisemeFrame,
@@ -35,11 +43,8 @@ export type GenerateVoiceResult = {
   visemes: VisemeFrame[];
 };
 
-/**
- * Generate voice audio + character-level alignment, then convert alignment to
- * a viseme keyframe track. Returns public-relative URLs for both files plus
- * the in-memory viseme track (useful for tests / direct embedding).
- */
+const REST_VISEME: Viseme = 'Lips_00';
+
 export async function generateVoice(config: VoiceConfig): Promise<GenerateVoiceResult> {
   const apiKey = process.env.ELEVENLABS_API_KEY || process.env.ELEVEN_LABS_API_KEY;
   if (!apiKey) {
@@ -50,8 +55,6 @@ export async function generateVoice(config: VoiceConfig): Promise<GenerateVoiceR
 
   const { voiceId, text, stability = 0.5, similarityBoost = 0.75 } = config;
 
-  // Hash combines voice + text so the same line in different voices
-  // doesn't collide. SHA-256 + base64url → unique per line.
   const hash = crypto
     .createHash('sha256')
     .update(`${voiceId}:${text}`)
@@ -73,15 +76,11 @@ export async function generateVoice(config: VoiceConfig): Promise<GenerateVoiceR
     };
   }
 
-  // The `/with-timestamps` endpoint returns audio_base64 + character alignment.
   const response = await fetch(
     `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/with-timestamps`,
     {
       method: 'POST',
-      headers: {
-        'xi-api-key': apiKey,
-        'Content-Type': 'application/json',
-      },
+      headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         text,
         model_id: 'eleven_flash_v2_5',
@@ -107,7 +106,7 @@ export async function generateVoice(config: VoiceConfig): Promise<GenerateVoiceR
   fs.writeFileSync(audioPath, Buffer.from(payload.audio_base64, 'base64'));
 
   const visemes = payload.alignment
-    ? alignmentToVisemes(payload.alignment)
+    ? alignmentToVisemes(text, payload.alignment)
     : [];
   fs.writeFileSync(visemePath, JSON.stringify(visemes));
 
@@ -120,40 +119,106 @@ export async function generateVoice(config: VoiceConfig): Promise<GenerateVoiceR
 }
 
 /**
- * Convert ElevenLabs character-level timings into a viseme keyframe track.
- * One frame per character; viseme picked by LETTER_TO_VISEME, with a closed
- * mouth inserted at the end of each word and at the very end of the line.
+ * Convert ElevenLabs character-level alignment into a detailed viseme
+ * keyframe track using CMU phoneme lookup.
+ *
+ * For each word in the spoken text:
+ *   - Find the character span in the alignment data.
+ *   - Look up the word's phoneme sequence (ARPAbet) in CMU.
+ *   - Distribute the audio duration proportionally across the phonemes.
+ *   - Emit a viseme frame per phoneme.
+ *
+ * Punctuation / whitespace gaps emit a closed-mouth (Lips_00) frame.
  */
-function alignmentToVisemes(alignment: {
-  characters: string[];
-  character_start_times_seconds: number[];
-  character_end_times_seconds: number[];
-}): VisemeFrame[] {
-  const frames: VisemeFrame[] = [];
-  const closed: Viseme = 'Lips_s00_Default';
-  let lastViseme: Viseme | null = null;
-
-  for (let i = 0; i < alignment.characters.length; i++) {
-    const ch = alignment.characters[i];
-    const start = alignment.character_start_times_seconds[i];
-    const end = alignment.character_end_times_seconds[i];
-    const lower = ch.toLowerCase();
-    const v = LETTER_TO_VISEME[lower];
-
-    if (v) {
-      if (v !== lastViseme) frames.push({ startSec: start, viseme: v });
-      lastViseme = v;
-    } else {
-      // Whitespace/punctuation → close mouth at this boundary.
-      if (lastViseme !== closed) frames.push({ startSec: start, viseme: closed });
-      lastViseme = closed;
-    }
-    // After the very last character, return to closed at its end-time.
-    if (i === alignment.characters.length - 1 && lastViseme !== closed) {
-      frames.push({ startSec: end, viseme: closed });
-    }
+function alignmentToVisemes(
+  text: string,
+  alignment: {
+    characters: string[];
+    character_start_times_seconds: number[];
+    character_end_times_seconds: number[];
   }
+): VisemeFrame[] {
+  const frames: VisemeFrame[] = [];
+  const emitIfChanged = (startSec: number, viseme: Viseme) => {
+    const last = frames[frames.length - 1];
+    if (!last || last.viseme !== viseme) {
+      frames.push({ startSec, viseme });
+    }
+  };
+
+  // Tokenize the original text (preserve sentence-level spacing). We
+  // walk through the character array and accumulate per-word spans.
+  const chars = alignment.characters;
+  const starts = alignment.character_start_times_seconds;
+  const ends = alignment.character_end_times_seconds;
+
+  let i = 0;
+  while (i < chars.length) {
+    const ch = chars[i];
+    if (!ch || !/[a-zA-Z']/.test(ch)) {
+      // Non-letter — close mouth at this boundary.
+      emitIfChanged(starts[i] ?? 0, REST_VISEME);
+      i++;
+      continue;
+    }
+    // Start of a word — collect until next non-letter.
+    const wordStartIdx = i;
+    let wordEndIdx = i;
+    while (wordEndIdx < chars.length && /[a-zA-Z']/.test(chars[wordEndIdx])) {
+      wordEndIdx++;
+    }
+    const word = chars.slice(wordStartIdx, wordEndIdx).join('');
+    const wordStartSec = starts[wordStartIdx];
+    const wordEndSec = ends[wordEndIdx - 1];
+    const wordDur = Math.max(0.01, wordEndSec - wordStartSec);
+
+    const phonemes = lookupPhonemes(word);
+    if (phonemes && phonemes.length > 0) {
+      const slice = wordDur / phonemes.length;
+      for (let p = 0; p < phonemes.length; p++) {
+        const phoneme = stripStress(phonemes[p]);
+        const viseme = ARPABET_TO_VISEME[phoneme] ?? REST_VISEME;
+        emitIfChanged(wordStartSec + slice * p, viseme);
+      }
+    } else {
+      // No dictionary entry — fall back to per-letter heuristic, evenly
+      // distributed across the word's audio span.
+      const letters = word.toLowerCase().replace(/'/g, '').split('');
+      const slice = wordDur / Math.max(1, letters.length);
+      for (let p = 0; p < letters.length; p++) {
+        const viseme = LETTER_TO_VISEME[letters[p]] ?? REST_VISEME;
+        emitIfChanged(wordStartSec + slice * p, viseme);
+      }
+    }
+
+    i = wordEndIdx;
+  }
+
+  // Close on the last character's end time.
+  const lastEnd = ends[ends.length - 1];
+  if (typeof lastEnd === 'number') {
+    emitIfChanged(lastEnd, REST_VISEME);
+  }
+
   return frames;
+}
+
+/**
+ * Look up a word's ARPAbet phoneme sequence in the CMU Pronouncing
+ * Dictionary. Returns null if not found. The dictionary stores entries
+ * lowercase with space-separated phonemes (e.g. "hello" → "HH AH0 L OW1").
+ */
+function lookupPhonemes(word: string): string[] | null {
+  const key = word.toLowerCase().replace(/[^a-z']/g, '');
+  if (!key) return null;
+  const entry = (cmuDictionary as Record<string, string | undefined>)[key];
+  if (!entry) return null;
+  return entry.split(/\s+/);
+}
+
+/** Strip the CMU stress digit (0/1/2) suffix from an ARPAbet phoneme. */
+function stripStress(phoneme: string): string {
+  return phoneme.replace(/[012]$/, '');
 }
 
 /** @deprecated Use generateVoice() — it always produces visemes too. */

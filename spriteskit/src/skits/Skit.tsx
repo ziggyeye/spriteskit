@@ -123,7 +123,7 @@ export const SkitComp: React.FC<{ skit: Skit }> = ({ skit }) => {
             from={fromFrame}
             durationInFrames={durationFrames}
           >
-            <Audio src={sp.audioUrl} volume={sp.volume ?? 1} />
+            <Audio src={sp.audioUrl} volume={sp.volume ?? 1} allowAmplificationDuringRender />
           </Sequence>
         );
       })}
@@ -359,7 +359,7 @@ function computeActorStates(
       clip: 'React_Stand_Discussion_1',
       clipTime: sec,
       clipLoop: true,
-      viseme: 'Lips_s00_Default',
+      viseme: 'Lips_00',
       eyes: 'Eye_0_Default',
     };
 
@@ -460,19 +460,20 @@ function resolveViseme(
 ): Viseme {
   if (speak.visemes && speak.visemes.length > 0) {
     const local = sec - speak.startSec;
-    let current: Viseme = 'Lips_s00_Default';
+    let current: Viseme = 'Lips_00';
     for (const f of speak.visemes) {
       if (f.startSec <= local) current = f.viseme;
       else break;
     }
     return current;
   }
-  // Procedural fallback: cycle a few open shapes at ~12Hz.
+  // Procedural fallback (no generated visemes): cycle a few open shapes
+  // at ~12Hz so the mouth still moves while the actor "speaks".
   const cycle: Viseme[] = [
-    'Lips_s02_a-i',
-    'Lips_s10_oh',
-    'Lips_s05_e-k-r',
-    'Lips_s11_o-u-w',
+    'Lips_02',
+    'Lips_08',
+    'Lips_06',
+    'Lips_07',
   ];
   const idx = Math.floor((sec - speak.startSec) * 12) % cycle.length;
   return cycle[idx];

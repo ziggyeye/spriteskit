@@ -7,83 +7,87 @@ export const visemes: VisemeMap = {
     "visemes": [
       {
         "startSec": 0,
-        "viseme": "Lips_s07_m-b-p"
+        "viseme": "Lips_20"
       },
       {
-        "startSec": 0.093,
-        "viseme": "Lips_s10_oh"
+        "startSec": 0.124,
+        "viseme": "Lips_02"
       },
       {
-        "startSec": 0.244,
-        "viseme": "Lips_s06_s-z"
+        "startSec": 0.248,
+        "viseme": "Lips_14"
       },
       {
-        "startSec": 0.383,
-        "viseme": "Lips_s00_Default"
+        "startSec": 0.372,
+        "viseme": "Lips_00"
       },
       {
-        "startSec": 0.615,
-        "viseme": "Lips_s02_a-i"
+        "startSec": 0.697,
+        "viseme": "Lips_01"
       },
       {
-        "startSec": 0.708,
-        "viseme": "Lips_s09_L"
+        "startSec": 0.7525999999999999,
+        "viseme": "Lips_13"
       },
       {
-        "startSec": 0.766,
-        "viseme": "Lips_s05_e-k-r"
+        "startSec": 0.8081999999999999,
+        "viseme": "Lips_01"
       },
       {
-        "startSec": 0.813,
-        "viseme": "Lips_s06_s-z"
+        "startSec": 0.8637999999999999,
+        "viseme": "Lips_19"
       },
       {
-        "startSec": 0.859,
-        "viseme": "Lips_s00_Default"
+        "startSec": 0.9194,
+        "viseme": "Lips_14"
       },
       {
-        "startSec": 0.917,
-        "viseme": "Lips_s02_a-i"
-      },
-      {
-        "startSec": 0.952,
-        "viseme": "Lips_s06_s-z"
-      },
-      {
-        "startSec": 0.987,
-        "viseme": "Lips_s00_Default"
+        "startSec": 0.975,
+        "viseme": "Lips_00"
       },
       {
         "startSec": 1.022,
-        "viseme": "Lips_s02_a-i"
+        "viseme": "Lips_06"
       },
       {
-        "startSec": 1.045,
-        "viseme": "Lips_s00_Default"
+        "startSec": 1.0565,
+        "viseme": "Lips_14"
       },
       {
-        "startSec": 1.103,
-        "viseme": "Lips_s05_e-k-r"
+        "startSec": 1.091,
+        "viseme": "Lips_00"
+      },
+      {
+        "startSec": 1.138,
+        "viseme": "Lips_01"
       },
       {
         "startSec": 1.161,
-        "viseme": "Lips_s10_oh"
+        "viseme": "Lips_00"
       },
       {
-        "startSec": 1.277,
-        "viseme": "Lips_s07_m-b-p"
+        "startSec": 1.207,
+        "viseme": "Lips_12"
       },
       {
-        "startSec": 1.347,
-        "viseme": "Lips_s10_oh"
+        "startSec": 1.2976,
+        "viseme": "Lips_08"
       },
       {
-        "startSec": 1.463,
-        "viseme": "Lips_s04_th"
+        "startSec": 1.3882,
+        "viseme": "Lips_20"
       },
       {
-        "startSec": 1.556,
-        "viseme": "Lips_s00_Default"
+        "startSec": 1.4788000000000001,
+        "viseme": "Lips_02"
+      },
+      {
+        "startSec": 1.5694,
+        "viseme": "Lips_18"
+      },
+      {
+        "startSec": 1.66,
+        "viseme": "Lips_00"
       }
     ]
   },
@@ -92,51 +96,43 @@ export const visemes: VisemeMap = {
     "visemes": [
       {
         "startSec": 0,
-        "viseme": "Lips_s11_o-u-w"
+        "viseme": "Lips_07"
       },
       {
-        "startSec": 0.081,
-        "viseme": "Lips_s05_e-k-r"
+        "startSec": 0.0815,
+        "viseme": "Lips_06"
       },
       {
-        "startSec": 0.151,
-        "viseme": "Lips_s00_Default"
+        "startSec": 0.163,
+        "viseme": "Lips_00"
       },
       {
-        "startSec": 0.197,
-        "viseme": "Lips_s05_e-k-r"
+        "startSec": 0.209,
+        "viseme": "Lips_18"
       },
       {
-        "startSec": 0.279,
-        "viseme": "Lips_s10_oh"
+        "startSec": 0.2905,
+        "viseme": "Lips_08"
       },
       {
-        "startSec": 0.325,
-        "viseme": "Lips_s11_o-u-w"
+        "startSec": 0.372,
+        "viseme": "Lips_00"
       },
       {
-        "startSec": 0.36,
-        "viseme": "Lips_s00_Default"
+        "startSec": 0.441,
+        "viseme": "Lips_18"
       },
       {
-        "startSec": 0.418,
-        "viseme": "Lips_s04_th"
+        "startSec": 0.5493333333333333,
+        "viseme": "Lips_00"
       },
       {
-        "startSec": 0.476,
-        "viseme": "Lips_s02_a-i"
+        "startSec": 0.6576666666666666,
+        "viseme": "Lips_17"
       },
       {
-        "startSec": 0.592,
-        "viseme": "Lips_s08_f-v"
-      },
-      {
-        "startSec": 0.627,
-        "viseme": "Lips_s05_e-k-r"
-      },
-      {
-        "startSec": 0.708,
-        "viseme": "Lips_s00_Default"
+        "startSec": 0.766,
+        "viseme": "Lips_00"
       }
     ]
   },
@@ -145,47 +141,43 @@ export const visemes: VisemeMap = {
     "visemes": [
       {
         "startSec": 0,
-        "viseme": "Lips_s11_o-u-w"
+        "viseme": "Lips_07"
       },
       {
-        "startSec": 0.081,
-        "viseme": "Lips_s02_a-i"
+        "startSec": 0.07366666666666667,
+        "viseme": "Lips_00"
       },
       {
-        "startSec": 0.209,
-        "viseme": "Lips_s04_th"
+        "startSec": 0.14733333333333334,
+        "viseme": "Lips_18"
       },
       {
-        "startSec": 0.244,
-        "viseme": "Lips_s00_Default"
+        "startSec": 0.221,
+        "viseme": "Lips_00"
       },
       {
-        "startSec": 0.546,
-        "viseme": "Lips_s02_a-i"
+        "startSec": 0.43,
+        "viseme": "Lips_06"
       },
       {
-        "startSec": 0.604,
-        "viseme": "Lips_s10_oh"
+        "startSec": 0.49350000000000005,
+        "viseme": "Lips_07"
       },
       {
-        "startSec": 0.639,
-        "viseme": "Lips_s11_o-u-w"
+        "startSec": 0.557,
+        "viseme": "Lips_00"
       },
       {
-        "startSec": 0.685,
-        "viseme": "Lips_s00_Default"
+        "startSec": 0.627,
+        "viseme": "Lips_18"
       },
       {
-        "startSec": 0.755,
-        "viseme": "Lips_s04_th"
+        "startSec": 0.7315,
+        "viseme": "Lips_07"
       },
       {
-        "startSec": 0.789,
-        "viseme": "Lips_s10_oh"
-      },
-      {
-        "startSec": 0.964,
-        "viseme": "Lips_s00_Default"
+        "startSec": 0.836,
+        "viseme": "Lips_00"
       }
     ]
   },
@@ -194,143 +186,139 @@ export const visemes: VisemeMap = {
     "visemes": [
       {
         "startSec": 0,
-        "viseme": "Lips_s07_m-b-p"
+        "viseme": "Lips_20"
       },
       {
-        "startSec": 0.07,
-        "viseme": "Lips_s05_e-k-r"
+        "startSec": 0.043,
+        "viseme": "Lips_12"
       },
       {
-        "startSec": 0.128,
-        "viseme": "Lips_s02_a-i"
+        "startSec": 0.086,
+        "viseme": "Lips_04"
       },
       {
-        "startSec": 0.174,
-        "viseme": "Lips_s05_e-k-r"
+        "startSec": 0.129,
+        "viseme": "Lips_02"
       },
       {
-        "startSec": 0.279,
-        "viseme": "Lips_s10_oh"
+        "startSec": 0.172,
+        "viseme": "Lips_19"
       },
       {
-        "startSec": 0.337,
-        "viseme": "Lips_s07_m-b-p"
+        "startSec": 0.21499999999999997,
+        "viseme": "Lips_12"
       },
       {
-        "startSec": 0.372,
-        "viseme": "Lips_s00_Default"
+        "startSec": 0.258,
+        "viseme": "Lips_08"
       },
       {
-        "startSec": 0.418,
-        "viseme": "Lips_s06_s-z"
+        "startSec": 0.344,
+        "viseme": "Lips_20"
       },
       {
-        "startSec": 0.441,
-        "viseme": "Lips_s00_Default"
+        "startSec": 0.38699999999999996,
+        "viseme": "Lips_14"
+      },
+      {
+        "startSec": 0.43,
+        "viseme": "Lips_00"
       },
       {
         "startSec": 0.464,
-        "viseme": "Lips_s10_oh"
+        "viseme": "Lips_09"
       },
       {
-        "startSec": 0.499,
-        "viseme": "Lips_s11_o-u-w"
+        "startSec": 0.505,
+        "viseme": "Lips_18"
       },
       {
-        "startSec": 0.534,
-        "viseme": "Lips_s04_th"
+        "startSec": 0.546,
+        "viseme": "Lips_00"
       },
       {
         "startSec": 0.569,
-        "viseme": "Lips_s00_Default"
+        "viseme": "Lips_01"
       },
       {
         "startSec": 0.592,
-        "viseme": "Lips_s10_oh"
+        "viseme": "Lips_17"
       },
       {
         "startSec": 0.615,
-        "viseme": "Lips_s08_f-v"
+        "viseme": "Lips_00"
       },
       {
-        "startSec": 0.639,
-        "viseme": "Lips_s00_Default"
+        "startSec": 0.673,
+        "viseme": "Lips_19"
       },
       {
-        "startSec": 0.685,
-        "viseme": "Lips_s01_sh-ch"
+        "startSec": 0.78325,
+        "viseme": "Lips_02"
       },
       {
-        "startSec": 0.72,
-        "viseme": "Lips_s10_oh"
+        "startSec": 0.8935000000000001,
+        "viseme": "Lips_17"
       },
       {
-        "startSec": 0.789,
-        "viseme": "Lips_s08_f-v"
+        "startSec": 1.0037500000000001,
+        "viseme": "Lips_06"
       },
       {
-        "startSec": 0.917,
-        "viseme": "Lips_s05_e-k-r"
+        "startSec": 1.114,
+        "viseme": "Lips_00"
       },
       {
-        "startSec": 1.091,
-        "viseme": "Lips_s00_Default"
+        "startSec": 1.207,
+        "viseme": "Lips_03"
+      },
+      {
+        "startSec": 1.2737500000000002,
+        "viseme": "Lips_13"
+      },
+      {
+        "startSec": 1.3405,
+        "viseme": "Lips_14"
+      },
+      {
+        "startSec": 1.40725,
+        "viseme": "Lips_08"
+      },
+      {
+        "startSec": 1.474,
+        "viseme": "Lips_00"
+      },
+      {
+        "startSec": 1.532,
+        "viseme": "Lips_02"
+      },
+      {
+        "startSec": 1.5785,
+        "viseme": "Lips_20"
+      },
+      {
+        "startSec": 1.625,
+        "viseme": "Lips_00"
       },
       {
         "startSec": 1.66,
-        "viseme": "Lips_s02_a-i"
+        "viseme": "Lips_01"
       },
       {
-        "startSec": 1.729,
-        "viseme": "Lips_s09_L"
+        "startSec": 1.6829999999999998,
+        "viseme": "Lips_18"
       },
       {
-        "startSec": 1.799,
-        "viseme": "Lips_s06_s-z"
+        "startSec": 1.706,
+        "viseme": "Lips_00"
       },
       {
-        "startSec": 1.869,
-        "viseme": "Lips_s10_oh"
+        "startSec": 1.753,
+        "viseme": "Lips_02"
       },
       {
-        "startSec": 1.915,
-        "viseme": "Lips_s00_Default"
-      },
-      {
-        "startSec": 1.973,
-        "viseme": "Lips_s02_a-i"
-      },
-      {
-        "startSec": 1.996,
-        "viseme": "Lips_s00_Default"
-      },
-      {
-        "startSec": 2.031,
-        "viseme": "Lips_s07_m-b-p"
-      },
-      {
-        "startSec": 2.066,
-        "viseme": "Lips_s00_Default"
-      },
-      {
-        "startSec": 2.101,
-        "viseme": "Lips_s02_a-i"
-      },
-      {
-        "startSec": 2.124,
-        "viseme": "Lips_s05_e-k-r"
-      },
-      {
-        "startSec": 2.147,
-        "viseme": "Lips_s00_Default"
-      },
-      {
-        "startSec": 2.194,
-        "viseme": "Lips_s02_a-i"
-      },
-      {
-        "startSec": 2.554,
-        "viseme": "Lips_s00_Default"
+        "startSec": 2.113,
+        "viseme": "Lips_00"
       }
     ]
   },
@@ -339,67 +327,75 @@ export const visemes: VisemeMap = {
     "visemes": [
       {
         "startSec": 0,
-        "viseme": "Lips_s02_a-i"
+        "viseme": "Lips_06"
       },
       {
-        "startSec": 0.081,
-        "viseme": "Lips_s06_s-z"
+        "startSec": 0.0755,
+        "viseme": "Lips_14"
       },
       {
-        "startSec": 0.139,
-        "viseme": "Lips_s00_Default"
+        "startSec": 0.151,
+        "viseme": "Lips_00"
       },
       {
-        "startSec": 0.186,
-        "viseme": "Lips_s02_a-i"
+        "startSec": 0.197,
+        "viseme": "Lips_04"
       },
       {
-        "startSec": 0.209,
-        "viseme": "Lips_s05_e-k-r"
+        "startSec": 0.2435,
+        "viseme": "Lips_18"
       },
       {
-        "startSec": 0.255,
-        "viseme": "Lips_s02_a-i"
+        "startSec": 0.29,
+        "viseme": "Lips_06"
       },
       {
-        "startSec": 0.325,
-        "viseme": "Lips_s10_oh"
+        "startSec": 0.3365,
+        "viseme": "Lips_07"
       },
       {
         "startSec": 0.383,
-        "viseme": "Lips_s05_e-k-r"
+        "viseme": "Lips_01"
       },
       {
-        "startSec": 0.464,
-        "viseme": "Lips_s00_Default"
+        "startSec": 0.4295,
+        "viseme": "Lips_18"
       },
       {
-        "startSec": 0.488,
-        "viseme": "Lips_s03_ah-i"
+        "startSec": 0.476,
+        "viseme": "Lips_00"
       },
       {
-        "startSec": 0.534,
-        "viseme": "Lips_s05_e-k-r"
+        "startSec": 0.511,
+        "viseme": "Lips_11"
+      },
+      {
+        "startSec": 0.5650000000000001,
+        "viseme": "Lips_06"
+      },
+      {
+        "startSec": 0.619,
+        "viseme": "Lips_12"
       },
       {
         "startSec": 0.673,
-        "viseme": "Lips_s00_Default"
+        "viseme": "Lips_00"
       },
       {
-        "startSec": 0.743,
-        "viseme": "Lips_s05_e-k-r"
+        "startSec": 0.731,
+        "viseme": "Lips_12"
       },
       {
-        "startSec": 0.929,
-        "viseme": "Lips_s02_a-i"
+        "startSec": 0.82,
+        "viseme": "Lips_06"
       },
       {
-        "startSec": 0.975,
-        "viseme": "Lips_s09_L"
+        "startSec": 0.909,
+        "viseme": "Lips_13"
       },
       {
-        "startSec": 1.057,
-        "viseme": "Lips_s00_Default"
+        "startSec": 0.998,
+        "viseme": "Lips_00"
       }
     ]
   },
@@ -408,95 +404,83 @@ export const visemes: VisemeMap = {
     "visemes": [
       {
         "startSec": 0,
-        "viseme": "Lips_s01_sh-ch"
+        "viseme": "Lips_15"
       },
       {
-        "startSec": 0.093,
-        "viseme": "Lips_s11_o-u-w"
+        "startSec": 0.06375,
+        "viseme": "Lips_01"
       },
       {
-        "startSec": 0.163,
-        "viseme": "Lips_s06_s-z"
+        "startSec": 0.1275,
+        "viseme": "Lips_14"
       },
       {
-        "startSec": 0.209,
-        "viseme": "Lips_s04_th"
+        "startSec": 0.19125,
+        "viseme": "Lips_18"
       },
       {
-        "startSec": 0.244,
-        "viseme": "Lips_s00_Default"
+        "startSec": 0.255,
+        "viseme": "Lips_00"
       },
       {
-        "startSec": 0.302,
-        "viseme": "Lips_s02_a-i"
+        "startSec": 0.313,
+        "viseme": "Lips_06"
       },
       {
-        "startSec": 0.337,
-        "viseme": "Lips_s10_oh"
-      },
-      {
-        "startSec": 0.372,
-        "viseme": "Lips_s11_o-u-w"
-      },
-      {
-        "startSec": 0.43,
-        "viseme": "Lips_s00_Default"
+        "startSec": 0.41200000000000003,
+        "viseme": "Lips_07"
       },
       {
         "startSec": 0.511,
-        "viseme": "Lips_s04_th"
+        "viseme": "Lips_00"
       },
       {
-        "startSec": 0.569,
-        "viseme": "Lips_s02_a-i"
+        "startSec": 0.755,
+        "viseme": "Lips_18"
       },
       {
-        "startSec": 0.685,
-        "viseme": "Lips_s08_f-v"
+        "startSec": 0.8476666666666667,
+        "viseme": "Lips_00"
       },
       {
-        "startSec": 0.743,
-        "viseme": "Lips_s05_e-k-r"
-      },
-      {
-        "startSec": 0.824,
-        "viseme": "Lips_s00_Default"
-      },
-      {
-        "startSec": 0.894,
-        "viseme": "Lips_s01_sh-ch"
-      },
-      {
-        "startSec": 0.975,
-        "viseme": "Lips_s11_o-u-w"
+        "startSec": 0.9403333333333332,
+        "viseme": "Lips_17"
       },
       {
         "startSec": 1.033,
-        "viseme": "Lips_s06_s-z"
+        "viseme": "Lips_00"
       },
       {
-        "startSec": 1.08,
-        "viseme": "Lips_s04_th"
+        "startSec": 1.091,
+        "viseme": "Lips_15"
       },
       {
-        "startSec": 1.115,
-        "viseme": "Lips_s00_Default"
+        "startSec": 1.14325,
+        "viseme": "Lips_01"
       },
       {
-        "startSec": 1.161,
-        "viseme": "Lips_s02_a-i"
+        "startSec": 1.1955,
+        "viseme": "Lips_14"
       },
       {
-        "startSec": 1.196,
-        "viseme": "Lips_s10_oh"
+        "startSec": 1.24775,
+        "viseme": "Lips_18"
       },
       {
-        "startSec": 1.231,
-        "viseme": "Lips_s11_o-u-w"
+        "startSec": 1.3,
+        "viseme": "Lips_00"
       },
       {
-        "startSec": 1.324,
-        "viseme": "Lips_s00_Default"
+        "startSec": 1.347,
+        "viseme": "Lips_06"
+      },
+      {
+        "startSec": 1.44,
+        "viseme": "Lips_07"
+      },
+      {
+        "startSec": 1.533,
+        "viseme": "Lips_00"
       }
     ]
   }

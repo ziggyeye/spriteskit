@@ -99,16 +99,25 @@ Node 18+ (22 tested).
 4. DOM overlays (speech bubbles, popups, emotes, flash) render on top of
    the canvas via `<AbsoluteFill>`.
 
-### FBX rig (Character_Talking.fbx)
+### FBX rig (Character_Talking.fbx + parts)
 
-- Skeleton: standard humanoid + `head_eyeR`, `head_eyeL` bones for eye
-  geometry.
-- Meshes: `Body_Head` (skin), `Body_Eye_L`, `Body_Eye_R`, `Body_Mouth` (the
-  swappable face submeshes), `Hair_Short`, `Hair_Ponytail`, `Beard_Full`,
-  `Beard_Lower`, `Clothes_Top_Tshirt`, `Clothes_Legs_Pants_Long`.
+- **Base rig**: `public/models/Character_Talking.fbx` (Lips-Pack).
+  Provides skeleton, animations, and the face submeshes
+  (`Body_Head`, `Body_Eye_L`, `Body_Eye_R`, `Body_Mouth`).
+- **Parts**: `Hair_All.fbx`, `Clothes_All.fbx`, `Accessories_All.fbx`,
+  `Items_All.fbx` (also in `public/models/`). Each shares the **exact
+  same 53-bone skeleton** as the base rig (verified by name). The
+  runtime harvests every SkinnedMesh from each parts FBX into a
+  `partsCache` map at startup. When each actor's rig is built, every
+  cached part is cloned and its skeleton reference **rebound** to the
+  clone's bones (matched by name). Result: the parts animate with the
+  actor's mixer.
+- The skeleton-rebind is the key trick — see `loadParts()` block in
+  [Character3D.tsx](src/components/Character3D.tsx). `partMesh.bind(new
+  Skeleton(remappedBones, originalBoneInverses), partMesh.matrixWorld)`.
 - The FBX-default materials are MeshPhongMaterials. We clone them per
-  actor instance so per-actor swaps (skin tone, hair colour, face texture)
-  don't bleed across characters.
+  actor instance so per-actor swaps (skin tone, hair colour, face
+  texture) don't bleed across characters.
 - `frustumCulled = false` on every SkinnedMesh — cloned bounding spheres
   reflect rest pose, not animated pose, and would otherwise be culled.
 - FBXLoader applies a `-π/2` X rotation on the root for Z-up → Y-up. We
@@ -118,24 +127,25 @@ Node 18+ (22 tested).
 ### Face expression system
 
 - **Body_Mouth**: material `M_Mouth`, UVs span 0..1 of the texture.
-  Default-bound to `sprites/lips_simple/Lips_s00_Default.png`. Each
-  speak/animate render swaps `.map` to the current viseme PNG.
-- **Body_Eye_L / Body_Eye_R**: material `M_Eyes` on each. Default-bound to
-  `sprites/eyes/Eye_0_Default.png`. The `eyes` action swaps both per
-  frame.
+  Default-bound to `sprites/lips/Lips_00.png` (closed mouth). Each
+  speak action's viseme track swaps `.map` to the current
+  `Lips_NN.png` per frame.
+- **Body_Eye_L / Body_Eye_R**: material `M_Eyes` on each. Default-bound
+  to `sprites/eyes/Eye_0_Default.png`. The `eyes` action swaps both
+  per frame.
 - All three use `alphaTest = 0.5` + `polygonOffset` to punch the black
   shape through the transparent background without z-fighting against
   `Body_Head`.
+- **Lip-sync pipeline** (`voiceService.ts`): ElevenLabs character-level
+  alignment → tokenize words → CMU dictionary lookup (ARPAbet phonemes)
+  → distribute audio duration across phonemes → map each phoneme via
+  `ARPABET_TO_VISEME` (derived from Lips_Legend.png) to a detailed
+  mouth frame. Words not in the dictionary fall back to a per-letter
+  heuristic.
 
 ## Asset catalogue
 
-### Active character rig — Lips-Pack/Character_Talking.fbx
-
-**Meshes (10):** `Body_Head`, `Body_Eye_L`, `Body_Eye_R`, `Body_Mouth`,
-`Hair_Short`, `Hair_Ponytail`, `Beard_Full`, `Beard_Lower`,
-`Clothes_Top_Tshirt`, `Clothes_Legs_Pants_Long`.
-
-**Animations (17):**
+### Animations (17, on the base Lips-Pack rig)
 
 | Clip | Duration | Use |
 | --- | --- | --- |
@@ -154,12 +164,14 @@ Node 18+ (22 tested).
 | `React_ThumbsUp` | 0.73s | Quick thumbs up |
 | `React_WaveHello` | 1.47s | Wave hello |
 | `React_WaveBye` | 2.20s | Wave goodbye |
-| `React_Handshake` | 1.90s | Two-character handshake (USE THIS — underused) |
+| `React_Handshake` | 1.90s | Two-character handshake — underused |
 | `React_Jump_Joy` | 0.87s | High-impact joy beat — save for finale |
 
-**Note:** No sit/eat/drink animations on this rig. For a cafe-themed skit
-involving sitting, sipping, or holding props, the Lips-Pack rig is not
-enough — see the Character variety section below.
+**Note:** No sit/eat/drink/run/dance animations on this rig. The
+Characters-Pack `Character_All.fbx` has 43 cafe animations
+(`Sofa_*`, `Floor_*`, `TallChair_*`, `Tray_*`, `Bar_*`) but we don't
+load that FBX. To get those clips we'd have to swap the base rig
+entirely; not worth it for most skits.
 
 ### Face sprites
 
@@ -177,76 +189,76 @@ enough — see the Character variety section below.
   `Lips_29`), same idea but finer-grained. Use only if simplified is too
   coarse.
 
-### Character variety
+### Outfit mesh catalogue (all loaded via `loadParts()`)
 
-The Lips-Pack rig is intentionally limited (1 top, 1 bottom, 2 hair,
-2 beard). Variety across actors comes from these per-actor texture
-overrides:
+Every mesh below is available on the active rig. Pick per actor via
+the `Outfit` object on the actor definition. Mesh names match the
+typed unions in `src/skits/assets.ts`.
 
-- **Skin tone** — `assets/Lips-Pack/Textures/Skintones/Skintone_1.png`
-  to `Skintone_6.png` (6 options). Bound to material `M_Skin`.
-- **Hair colour** — `assets/Lips-Pack/Textures/Haircolour/Haircolour_01.png`
-  to `Haircolour_16.png` (16 options). Bound to material `M_Hair`.
-- **Clothing colour** — pull from
-  `assets/Characters-Pack/Textures/Swatch Colours/`:
-  `Amber`, `Cappuccino`, `Cushion_Blue`, `Cushion_Orange`, `Cushion_Red`,
-  `Espresso`, `Glass`, `Green_Cactus`, `Green_Leaves`, `Grey`,
-  `Honey_Milk`, `Latte`, `Machine_Black`, `Matcha`,
+**Tops (8)** — `Clothes_Top_Tshirt`, `Clothes_Top_Tshirt_V`,
+`Clothes_Top_Hoodie`, `Clothes_Top_Sweater_TurtleNeck`,
+`Clothes_Top_CollarShirt_Long`, `Clothes_Top_CollarShirt_Tucked`,
+`Clothes_Top_CollarBlouse_Long`, `Clothes_Top_CollarBlouse_Short`.
+
+**Bottoms (4)** — `Clothes_Legs_Pants_Long`,
+`Clothes_Legs_Pants_Short_Pockets`, `Clothes_Legs_Skirt`,
+`Clothes_Legs_Skirt_Long`.
+
+**Aprons (2, over the top)** — `Clothes_Apron_Short`,
+`Clothes_Apron_Long`.
+
+**Hair (17)** — `Hair_Short`, `Hair_ShortBob`, `Hair_ShortSpiky`,
+`Hair_SideSweep`, `Hair_Long`, `Hair_Ponytail`, `Hair_Ponytail_Tight`,
+`Hair_Pigtails`, `Hair_Bun_Big`, `Hair_Bun_Small`, `Hair_Hijab`,
+`Hair_Senior_A`, `Hair_Senior_B`, `Hair_Shave_AfroTop`,
+`Hair_Shave_BuzzAfro`, `Hair_Shave_Buzzcut`, `Hair_Shave_Swept`.
+
+**Beards (2)** — `Beard_Full`, `Beard_Lower`.
+
+**Head accessories (7)** — `Accessory_Glasses`, `Accessory_Headphones_black`,
+`Accessory_Headphones_blue`, `Accessory_Headphones_pink`,
+`Accessory_Headphones_red`, `Accessory_Headphones_yellow`,
+`Hair_Acc_Band`.
+
+**Held props (17)** — `held_Tray`, `held_Cupcake_Bubblegum`,
+`held_Cupcake_Matcha`, `held_Cupcake_Orange`, `held_Cupcake_RedVelvet`,
+`held_Coffee_Full`, `held_Coffee_Whip`, `held_Milkshake_Chocolate`,
+`held_Milkshake_Empty`, `held_Milkshake_Matcha`,
+`held_Milkshake_Strawberry`, `held_set_1_Cup`, `held_set_2_Cup`,
+`held_set_3_Cup`, `held_set_1_Plate`, `held_set_2_Plate`,
+`held_set_3_Plate`.
+
+> **Caveat on held items:** their bones (`held_item_tray`,
+> `held_item_plate`, `held_item_drink_food`) are parented to `Root`
+> in the rig and rely on the Characters-Pack cafe animations
+> (Tray_Walk, Sofa_Cup_Pickup, etc.) to keyframe their position.
+> Those animations live in `Character_All.fbx` which we don't load.
+> The engine works around this by reparenting the held_item_* bones
+> to `hand_palmR` at clone time, so held items follow the right hand
+> for free. Visual fidelity is "decent, not perfect" — items sit at
+> the palm in a fixed orientation. Good enough for casual skits;
+> if a skit really needs precise pickup motion, harvest the cafe
+> clips from `Character_All.fbx` (see LEARNINGS.md).
+
+### Per-actor texture overrides
+
+In addition to mesh choice, each outfit slot supports a colour swatch
+override. All are optional; defaults are sensible.
+
+- **Skin tone** — `skinTone: Skintone_1` … `Skintone_6` (6 options).
+- **Hair colour** — `hairColor: Haircolour_01` … `Haircolour_16` (16
+  options). The palette is **not** ordered light-to-dark — it's
+  blonde/gold/ginger/brown/black/pink/blue/etc.
+- **Clothing colours** (top / legs / shoes / apron) — pick from 21
+  swatches: `Amber`, `Cappuccino`, `Cushion_Blue`, `Cushion_Orange`,
+  `Cushion_Red`, `Espresso`, `Glass`, `Green_Cactus`, `Green_Leaves`,
+  `Grey`, `Honey_Milk`, `Latte`, `Machine_Black`, `Matcha`,
   `Milkshake_Strawberry`, `Olive_Sofa`, `Paper`, `Porcelain_Blue`,
-  `Porcelain_Orange`, `Silver`, `Whipped_Cream`. Assign per-actor to
-  `M_Clothes_Top`, `M_Clothes_Legs`, `M_Clothes_Shoes`.
+  `Porcelain_Orange`, `Silver`, `Whipped_Cream`.
 
-> **NOTE (not-yet-wired):** the `Outfit` type in `src/skits/assets.ts`
-> only models mesh visibility today. Per-actor skin/hair/clothing colour
-> overrides require extending `Outfit` (e.g. add `skintone`, `hairColor`,
-> `topColor`, etc.) and threading the texture binding through
-> `Character3D.tsx`. Flag this in skit pitches that need distinct-looking
-> actors.
-
-### Optional packs not yet integrated
-
-These FBXs live in `assets/Characters-Pack/` and are NOT currently used
-by the engine. They're catalogued here so brainstorm agents know what
-*could* be unlocked with extra work.
-
-**`Character_All.fbx`** — full Cozy Cafe character. **62 meshes, 43
-animations.** Adds:
-
-- **Tops (9):** `Tshirt`, `Tshirt_V`, `Hoodie`, `Sweater_TurtleNeck`,
-  `CollarShirt_Long`, `CollarShirt_Tucked`, `CollarBlouse_Long`,
-  `CollarBlouse_Short`.
-- **Aprons (2):** `Apron_Short`, `Apron_Long`.
-- **Bottoms (4):** `Pants_Long`, `Pants_Short_Pockets`, `Skirt`,
-  `Skirt_Long`.
-- **Hair (18):** `Short`, `ShortBob`, `ShortSpiky`, `SideSweep`, `Long`,
-  `Ponytail`, `Ponytail_Tight`, `Pigtails`, `Bun_Big`, `Bun_Small`,
-  `Hijab`, `Senior_A`, `Senior_B`, `Shave_AfroTop`, `Shave_BuzzAfro`,
-  `Shave_Buzzcut`, `Shave_Swept`, `Acc_Band`.
-- **Beards (2):** `Full`, `Lower`.
-- **Accessories (6):** `Glasses`, `Headphones_black/blue/pink/red/yellow`.
-- **Cafe animations (43):** all `Sofa_*`, `Floor_*`, `TallChair_*`,
-  `Tray_*`, `Bar_*` clips for sitting, eating, drinking, serving,
-  carrying. The cafe vocabulary the Lips-Pack doesn't have.
-
-`Character_All.fbx` does NOT have `Body_Mouth` / `Body_Eye_L/R`
-submeshes — only `Body_Head` with an `M_Eyes` material slot that uses a
-single sprite-atlas region. To get both the cafe outfit set AND face
-expression, you'd need to bone-remap the Lips-Pack face meshes onto the
-Characters-Pack rig (a multi-day port — Lips-Pack ships a Unity helper
-script for this).
-
-**`Items_All.fbx`** — 17 standalone prop meshes that could be placed
-in a scene: `held_Tray`, `held_Cupcake_Bubblegum`/`Matcha`/`Orange`/
-`RedVelvet`, `held_Coffee_Full`, `held_Coffee_Whip`,
-`held_Milkshake_Chocolate`/`Matcha`/`Strawberry`/`Empty`, and three
-cup-plate sets (`set_1`/`set_2`/`set_3`, each with a Cup and a Plate).
-These are normally attached to character hands via the `held` outfit
-slot on `Character_All.fbx`. They aren't integrated as standalone scene
-props — would need a new `prop` action type.
-
-**`Clothes_All.fbx`**, **`Hair_All.fbx`**, **`Accessories_All.fbx`** —
-the same meshes from `Character_All.fbx` but exported separately.
-Useful if you ever want to assemble a custom rig piecemeal.
+Accessories and held items use `T_CatCafe_Atlas.png` and their colours
+are baked into UV regions (e.g. each headphone colour is a different
+mesh, not a colour swatch override).
 
 ## Adding a new skit (the common task)
 
@@ -264,28 +276,54 @@ in `aiTakingMyJob.ts` (a shared y-value for all actors) is a good default.
 Times are in **seconds** (not frames). The renderer converts using the skit's
 `fps` (default 30).
 
+### Actor facing — 8 cardinal/diagonal directions
+
+`Direction` is `'down' | 'down-left' | 'down-right' | 'left' | 'right'
+| 'up' | 'up-left' | 'up-right'`. Maps to yaw:
+
+- `down` → 0°  (faces camera dead-on)
+- `down-right` → 45°
+- `right` → 90°
+- `up-right` → 135°
+- `up` → 180° (away from camera)
+- `up-left` → -135°
+- `left` → -90°
+- `down-left` → -45°
+
+**Use diagonals for two-character dialogue.** A character on the right
+side of frame should face `down-left` so they read as both
+camera-friendly AND turned toward the other actor. A character on the
+left should face `down-right`. Head-on `down` reads as "staring into
+the void"; cardinal `left`/`right` reads as "in profile, ignoring
+camera". Diagonals are the sweet spot for dialogue scenes.
+
 ### Action vocabulary (`src/skits/types.ts`)
 
 | Action | What it does |
 | --- | --- |
 | `walk` | Move actor from current position to `to` over time. Auto-plays `Walk_Loop`. |
-| `face` | Snap an actor's facing direction at a given time. |
-| `speak` | Pop-in speech bubble with typewriter reveal. Drives lip-sync via `visemes` if present. |
-| `animate` | Play a named FBX clip on an actor for a time window. Use `ClipName` union for type safety. |
+| `face` | Snap an actor's facing direction at a given time (uses `Direction`). |
+| `speak` | Pop-in speech bubble + ElevenLabs audio + lip-sync. Hidden actors get audio only. `volume?` 0..1+ (amplification allowed via `allowAmplificationDuringRender`). |
+| `animate` | Play a named FBX clip on an actor for a time window. `loop?: boolean` — default `true`, but use `false` for long windows to hold the end pose (avoids visible loop resets). |
 | `eyes` | Swap an actor's eye sprite for a time window. Use `EyeSprite` union. |
+| `tint` | Apply a rim-glow emissive colour to an actor's body. |
+| `fade` | Tween an actor's opacity `fromOpacity → toOpacity` over a window. Dissolves. |
 | `emote` | Float an emoji above an actor's head. |
-| `tint` | Glow-tint an actor (rim light). |
-| `camera` | Tween camera position / lookAt / fov over a window. Hard cuts: tiny duration (~0.05s). |
+| `camera` | Tween camera position / lookAt / fov / `up` (Dutch tilt) over a window. Hard cuts: tiny duration (~0.05s). |
+| `sfx` | Schedule an audio clip. Optional `loop` + `loopClipSec` for ambient beds. |
 | `popupText` | Big meme caption that springs in and wobbles. |
 | `shake` | Camera shake for comedic emphasis. |
 | `flash` | Full-frame colour overlay. |
 
 ## Adding a new character (visual variety)
 
-Today's path: pick `sprite: 'dave' | 'alex' | 'boss' | 'janitor' | 'intern'`
-and the renderer maps via `LEGACY_OUTFITS`. To add per-actor skin tone /
-hair colour / clothing colour, see the **not-yet-wired** note above —
-the schema needs extension.
+Define an `Actor` with an inline `Outfit` object. Pick meshes from each
+slot (`top`, `bottom`, optional `hair`, `beard`, `apron`, `accessory`,
+`held`) using the typed unions in `src/skits/assets.ts`. Add colour
+overrides via `skinTone`, `hairColor`, `topColor`, `legColor`,
+`shoesColor`, `apronColor`. Sprite ID (`'dave'`/`'alex'`/etc.) is
+purely for legacy compatibility — the renderer picks meshes from
+`outfit`, not `sprite`, when both are present.
 
 ## Adding a new timeline action type
 

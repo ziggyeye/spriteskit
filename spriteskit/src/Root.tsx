@@ -4,9 +4,11 @@ import { SkitComp } from './skits/Skit';
 import { aiTakingMyJob } from './skits/scripts/aiTakingMyJob';
 import { aiTakingMyJobPt2 } from './skits/scripts/aiTakingMyJobPt2';
 import { lastSongRemembered } from './skits/scripts/lastSongRemembered';
+import { areYouOkay } from './skits/scripts/areYouOkay';
 import { visemes as lastSongVisemes } from './skits/scripts/lastSongRemembered.visemes';
 import { visemes as aiTakingMyJobVisemes } from './skits/scripts/aiTakingMyJob.visemes';
 import { visemes as aiTakingMyJobPt2Visemes } from './skits/scripts/aiTakingMyJobPt2.visemes';
+import { visemes as areYouOkayVisemes } from './skits/scripts/areYouOkay.visemes';
 import { withVisemes } from './skits/withVisemes';
 import type { Skit } from './skits/types';
 
@@ -21,6 +23,7 @@ const skits: Skit[] = [
   withVisemes(aiTakingMyJob, aiTakingMyJobVisemes),
   withVisemes(aiTakingMyJobPt2, aiTakingMyJobPt2Visemes),
   withVisemes(lastSongRemembered, lastSongVisemes),
+  withVisemes(areYouOkay, areYouOkayVisemes),
 ];
 
 export const RemotionRoot: React.FC = () => {

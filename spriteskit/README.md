@@ -203,14 +203,23 @@ for sfx). If still soft, lower the narrator's volume on each speak action.
 
 ## 3D character rig
 
-Active model: `public/models/Character_Talking.fbx` (Lips-Pack). See
-[AGENTS.md](AGENTS.md) for the full inventory:
+Base model: `public/models/Character_Talking.fbx` (Lips-Pack). Mesh
+variety comes from four parts FBXs (`Hair_All.fbx`, `Clothes_All.fbx`,
+`Accessories_All.fbx`, `Items_All.fbx`) whose meshes are rebound onto
+the base skeleton at startup via `loadParts()`. See [AGENTS.md](AGENTS.md)
+for the full inventory:
 
 - **17 animations** (`Walk_Loop`, `React_Stand_Discussion_1/2`, `React_Handshake`, …)
-- **Per-actor outfit slots**: top, bottom, hair, beard
-- **Per-actor texture overrides**: skinTone (6 options), hairColor (16), topColor / legColor / shoesColor (21 swatches each)
+- **Outfit slots** (all available on the active rig):
+  - 8 tops, 4 bottoms, 2 aprons, 17 hair styles, 2 beards
+  - 7 head accessories (glasses, 5 headphone colours, headband)
+  - 17 held props (tray, cupcakes, coffees, milkshakes, cup/plate sets)
+- **Per-actor texture overrides**: skinTone (6 options), hairColor (16),
+  topColor / legColor / shoesColor / apronColor (21 swatches each)
 - **Face submeshes**: `Body_Eye_L`, `Body_Eye_R`, `Body_Mouth` — independently swappable per frame
-  - 16 eye sprites • 20 simplified mouth visemes + emotions • 30 detailed mouth shapes
+  - 16 eye sprites • 30 mouth shapes (20 ARPAbet-mapped phonemes + 9 emotion mouths)
+- **8-direction facing**: `down` / `down-left` / `down-right` / `left` /
+  `right` / `up-left` / `up-right` / `up`. Use diagonals for dialogue.
 
 ## Brainstorm subagents
 

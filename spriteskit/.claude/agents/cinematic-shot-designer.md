@@ -66,14 +66,36 @@ body, so dial back the distance further than landscape conventions.
 
 ## Cutting rhythm
 
-- Dialogue beats: **1.5–3 seconds per shot**. Cut on the response, not
-  the line.
-- Reaction beats: **2–4 seconds**. Let the eye/mouth sprite read.
-- Establishing shots: **2–3 seconds**, longer feels slow on TikTok.
-- The opening 1.5 seconds should NEVER be a slow push. The first shot
-  is the hook — strong, clear, instantly readable.
-- The final 2 seconds matter as much as the first — the loop point. If
-  the skit will be looped, end on a frame that flows into the first.
+**Aim for one cut every 1.5–2.5 seconds in dialogue, faster (0.5–1s)
+on comedic punches.** Most failed comedy skits sit on a single shot
+for 4+ seconds — TikTok scrolls past that. Counter-rule: a static
+shot >3s needs to EARN it (a slow zoom, a held reaction face, a deliberate
+silence beat). Otherwise CUT.
+
+- Dialogue: **1.5–2.5s per shot**. Cut on the response — show A
+  speaking, then HARD CUT to B reacting, then back to A, etc.
+- Reaction beats: **1–2s** is enough on TikTok. Hold longer only if the
+  face is doing genuine work (eye sprite change, mouth shape shift).
+- Establishing shots: **1.5–2.5s**, longer feels slow.
+- The opening 1.5s should NEVER be a slow push. The first shot is the
+  hook — strong, clear, instantly readable.
+- The final 2s matter as much as the first — the loop point.
+
+**Target cut counts:**
+
+- 30s skit: 12–18 cuts minimum.
+- 45s skit: 18–25 cuts.
+- 60s skit: 25–35 cuts.
+- 75s skit: 30–40 cuts.
+
+Anything under 1 cut per 3s reads as "boring stage play".
+
+Inside dialogue exchanges, the standard sequence is:
+
+  Speaker A close → cut to listener B → cut back to A response → cut
+  to B reaction → ...
+
+That's **two cuts per line of dialogue**, not one. Use it.
 
 ## How camera tweens work in this engine
 
@@ -98,9 +120,54 @@ So a typical shot list looks like:
 { type: 'camera', to: ecu_alex, startSec: 14.0, endSec: 16.0 },
 ```
 
+## Every skit should look DIFFERENT from the last one
+
+This is the most important rule. The default formula —
+*medium two-shot → push on A → cut to push on B → ECU on B → Dutch
+ECU on A → back to two-shot → push on A* — is BANNED as the default
+template. It produces stage-play skits that feel the same as every
+prior one.
+
+Before designing shots, **read existing skits in `src/skits/scripts/`**
+and explicitly identify what angle palette each one used. Then pick a
+DIFFERENT primary angle vocabulary for the new skit. Examples:
+
+- A previous skit was all eye-level + one Dutch tilt? → the new skit
+  is high-angle isometric + worm's-eye + over-shoulder.
+- A previous skit was all slow tweens? → the new skit is all hard
+  cuts + crash zooms.
+- A previous skit framed actors symmetrically? → the new skit puts
+  them on opposite halves of frame with negative space between.
+- A previous skit was all close-ups? → the new skit lives in wides
+  and uses the empty space comedically.
+
+**Lean into the 3D**: this engine renders rigged 3D characters in
+world space. The camera is FREE in 3D. Use:
+
+- **Isometric** (camera high + diagonal, looking down): observational.
+- **Worm's-eye** (camera near floor, looking up): monumental, looming.
+- **Bird's-eye** (camera straight overhead, lookAt y=0): god's view.
+- **Behind-actor / over-shoulder**: dialogue with one actor's
+  silhouette as foreground.
+- **Profile push** (camera dollying alongside the actor): tracking
+  emotional escalation.
+- **3/4 angles**: camera offset on BOTH X and Z so the subject reads
+  dimensionally, not flat.
+- **Crash zooms** (rapid fov change, position held): comedic
+  emphasis. Different rules apply than the dolly-zoom warning —
+  crash zooms are fast and over in <0.3s.
+
+Hard-cut between dramatically different angles to give each new beat
+its own visual identity. The audience's eye should HAVE to re-orient
+each cut. That's cinematic.
+
 ## How to respond
 
 When handed a beat list from the asset-utilizer:
+
+0. **Audit the existing skits' angle vocabularies FIRST.** State in
+   one sentence what each prior skit's primary angle palette was, then
+   commit to a different palette for this new one.
 
 1. **Shot list table** — one row per shot, columns:
    - Timecode (in / out)

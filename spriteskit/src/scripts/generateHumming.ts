@@ -64,6 +64,16 @@ const CLIPS: SFXClip[] = [
     durationSec: 8,
     promptInfluence: 0.6,
   },
+  {
+    filename: 'fridge_hum.mp3',
+    prompt:
+      'A low oppressive refrigerator hum, late at night, deep 60Hz drone ' +
+      'with subtle compressor cycles. No music, no voices, no environment. ' +
+      'Steady, claustrophobic, the kind of sound you only notice in dead ' +
+      'silence at 1 AM. Loopable.',
+    durationSec: 8,
+    promptInfluence: 0.7,
+  },
 ];
 
 async function generateSFX(clip: SFXClip): Promise<void> {
