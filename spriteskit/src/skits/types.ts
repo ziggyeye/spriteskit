@@ -52,6 +52,13 @@ export type CameraState = {
   lookAt: [number, number, number];
   /** Vertical field of view in degrees. Default 35. */
   fov?: number;
+  /**
+   * World-space "up" vector for the camera. Defaults to [0, 1, 0]
+   * (horizon level). Set to e.g. [0.2, 1, 0] for a Dutch tilt — the
+   * horizon rolls slightly. Use sparingly; non-default `up` reads as
+   * "unsettled" or "off-balance".
+   */
+  up?: [number, number, number];
 };
 
 /** A step on the skit timeline. All times are in seconds. */
@@ -93,6 +100,11 @@ export type Action =
        * If omitted, the mouth flaps procedurally for the speak duration.
        */
       visemes?: VisemeFrame[];
+      /**
+       * Volume 0..1 for the spoken audio. Default 1. Use lower values
+       * for narrator / VO lines that need to sit under SFX or music.
+       */
+      volume?: number;
     }
   | {
       type: 'popupText';
@@ -133,6 +145,21 @@ export type Action =
       endSec: number;
     }
   | {
+      /**
+       * Fade an actor's opacity from `fromOpacity` to `toOpacity` over the
+       * window. Use to dissolve a character out of the scene (or fade
+       * one in). At opacity 0 the character is invisible but the actor
+       * is still considered "visible" for state purposes — use `hidden`
+       * on the Actor for a hard cut to invisible.
+       */
+      type: 'fade';
+      actorId: string;
+      fromOpacity: number;
+      toOpacity: number;
+      startSec: number;
+      endSec: number;
+    }
+  | {
       /** Play a named FBX animation clip on an actor for a time window. */
       type: 'animate';
       actorId: string;
@@ -159,6 +186,30 @@ export type Action =
       to: CameraState;
       startSec: number;
       endSec: number;
+    }
+  | {
+      /**
+       * Play a sound effect / music clip during a time window. The audio
+       * is mixed with any other audio (music, voiceover). Use for
+       * humming, ambient SFX, layered tracks.
+       */
+      type: 'sfx';
+      /** Path to the audio file. Use `staticFile('music/foo.mp3')` for bundled assets. */
+      audioUrl: string;
+      startSec: number;
+      endSec: number;
+      /** Volume 0..1. Default 1. */
+      volume?: number;
+      /**
+       * If true, the clip auto-repeats until `endSec`. Use for short
+       * humming loops or ambient beds that need to fill a long window.
+       * The clip's duration must be known to Remotion at bundle time —
+       * supply `loopClipSec` (in seconds) so the renderer knows how
+       * long one repetition lasts.
+       */
+      loop?: boolean;
+      /** Duration of one repetition of the clip, in seconds. Required when `loop` is true. */
+      loopClipSec?: number;
     };
 
 export type Skit = {

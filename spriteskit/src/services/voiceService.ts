@@ -12,6 +12,7 @@
  *   public/voices/{hash}.visemes.json
  */
 
+import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import fetch from 'node-fetch';
@@ -49,8 +50,12 @@ export async function generateVoice(config: VoiceConfig): Promise<GenerateVoiceR
 
   const { voiceId, text, stability = 0.5, similarityBoost = 0.75 } = config;
 
-  // Hash combines voice + text so the same line in different voices doesn't collide.
-  const hash = Buffer.from(`${voiceId}:${text}`).toString('base64')
+  // Hash combines voice + text so the same line in different voices
+  // doesn't collide. SHA-256 + base64url → unique per line.
+  const hash = crypto
+    .createHash('sha256')
+    .update(`${voiceId}:${text}`)
+    .digest('base64')
     .replace(/[/+=]/g, '_')
     .slice(0, 24);
   const voicesDir = path.join(process.cwd(), 'public', 'voices');

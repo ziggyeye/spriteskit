@@ -5,6 +5,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
   Audio,
+  Loop,
   Sequence,
 } from 'remotion';
 import { ThreeCanvas } from '@remotion/three';
@@ -122,7 +123,41 @@ export const SkitComp: React.FC<{ skit: Skit }> = ({ skit }) => {
             from={fromFrame}
             durationInFrames={durationFrames}
           >
-            <Audio src={sp.audioUrl} />
+            <Audio src={sp.audioUrl} volume={sp.volume ?? 1} />
+          </Sequence>
+        );
+      })}
+
+      {/* SFX tracks — humming, ambient sound, layered music. Looped
+          clips wrap in <Loop> so a short hum can fill a long window.
+          ElevenLabs sound-generation clips come out QUIET compared
+          to its voice TTS output, so we enable
+          `allowAmplificationDuringRender` to let volume exceed 1.0
+          for SFX (default Remotion clamp would cap at 1). */}
+      {(skit.timeline.filter((a) => a.type === 'sfx') as Extract<Action, { type: 'sfx' }>[]).map((s, i) => {
+        const fromFrame = Math.round(s.startSec * fps);
+        const durationFrames = Math.round((s.endSec - s.startSec) * fps);
+        if (s.loop && s.loopClipSec) {
+          const clipFrames = Math.max(1, Math.round(s.loopClipSec * fps));
+          return (
+            <Sequence
+              key={`sfx-${i}-${s.startSec}`}
+              from={fromFrame}
+              durationInFrames={durationFrames}
+            >
+              <Loop durationInFrames={clipFrames}>
+                <Audio src={s.audioUrl} volume={s.volume ?? 1} allowAmplificationDuringRender />
+              </Loop>
+            </Sequence>
+          );
+        }
+        return (
+          <Sequence
+            key={`sfx-${i}-${s.startSec}`}
+            from={fromFrame}
+            durationInFrames={durationFrames}
+          >
+            <Audio src={s.audioUrl} volume={s.volume ?? 1} allowAmplificationDuringRender />
           </Sequence>
         );
       })}
@@ -154,6 +189,8 @@ export const SkitComp: React.FC<{ skit: Skit }> = ({ skit }) => {
                 clipLoop={s.clipLoop}
                 viseme={s.viseme}
                 eyes={s.eyes}
+                tint={s.tint}
+                opacity={s.opacity}
               />
             );
           })}
@@ -186,11 +223,15 @@ export const SkitComp: React.FC<{ skit: Skit }> = ({ skit }) => {
           );
         })}
 
-        {/* Speech bubbles */}
+        {/* Speech bubbles. Hidden actors (e.g. narrator) suppress their
+            bubble; their audio still plays via the Audio sequence above,
+            and the skit author uses a parallel popupText for the
+            on-screen caption. */}
         {activeSpeaks.map((sp, i) => {
           const actor = skit.actors.find((a) => a.id === sp.actorId);
           const s = actorStates[sp.actorId];
           if (!actor || !s) return null;
+          if (!s.visible) return null;
           const duration = Math.round((sp.endSec - sp.startSec) * fps);
           const localFrame = frame - Math.round(sp.startSec * fps);
           const headY = s.y - CHARACTER_HEIGHT_PX * (actor.scale ?? 1);
@@ -272,6 +313,10 @@ const SceneCamera: React.FC<{ camera: CameraState }> = ({ camera }) => {
   cam.fov = camera.fov ?? 35;
   cam.near = 0.1;
   cam.far = 5000;
+  // Apply per-shot "up" direction (Dutch tilt) before lookAt so the
+  // resulting view is rolled. Default is world up [0,1,0].
+  const up = camera.up ?? [0, 1, 0];
+  cam.up.set(up[0], up[1], up[2]);
   cam.updateProjectionMatrix();
   cam.lookAt(camera.lookAt[0], camera.lookAt[1], camera.lookAt[2]);
   return null;
@@ -285,6 +330,8 @@ type ActorRuntimeState = {
   direction: Direction;
   visible: boolean;
   tint?: string;
+  /** 0..1. Defaults to 1. Use the `fade` action to tween across windows. */
+  opacity: number;
   clip: ClipName;
   clipTime: number;
   clipLoop: boolean;
@@ -304,8 +351,13 @@ function computeActorStates(
       y: actor.start.y,
       direction: actor.facing ?? 'down',
       visible: !actor.hidden,
+      opacity: 1,
+      // Default to a looping idle so actors keep moving even when no
+      // explicit `animate` action is firing. The clipTime tracks the
+      // global `sec` so the idle loop runs continuously and the actor
+      // never freezes.
       clip: 'React_Stand_Discussion_1',
-      clipTime: 0,
+      clipTime: sec,
       clipLoop: true,
       viseme: 'Lips_s00_Default',
       eyes: 'Eye_0_Default',
@@ -360,6 +412,17 @@ function computeActorStates(
       if (action.type === 'tint' && action.actorId === actor.id) {
         if (sec >= action.startSec && sec < action.endSec) {
           state.tint = action.color;
+        }
+      }
+
+      if (action.type === 'fade' && action.actorId === actor.id) {
+        if (sec >= action.endSec) {
+          state.opacity = action.toOpacity;
+        } else if (sec >= action.startSec) {
+          const t = (sec - action.startSec) / Math.max(0.001, action.endSec - action.startSec);
+          const eased = easeInOut(t);
+          state.opacity =
+            action.fromOpacity + (action.toOpacity - action.fromOpacity) * eased;
         }
       }
 
@@ -443,6 +506,8 @@ function computeCameraState(
 }
 
 function lerpCamera(a: CameraState, b: CameraState, t: number): CameraState {
+  const aUp = a.up ?? [0, 1, 0];
+  const bUp = b.up ?? [0, 1, 0];
   return {
     position: [
       a.position[0] + (b.position[0] - a.position[0]) * t,
@@ -455,6 +520,11 @@ function lerpCamera(a: CameraState, b: CameraState, t: number): CameraState {
       a.lookAt[2] + (b.lookAt[2] - a.lookAt[2]) * t,
     ],
     fov: (a.fov ?? 35) + ((b.fov ?? 35) - (a.fov ?? 35)) * t,
+    up: [
+      aUp[0] + (bUp[0] - aUp[0]) * t,
+      aUp[1] + (bUp[1] - aUp[1]) * t,
+      aUp[2] + (bUp[2] - aUp[2]) * t,
+    ],
   };
 }
 

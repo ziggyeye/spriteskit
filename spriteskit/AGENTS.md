@@ -6,11 +6,16 @@ reads.
 
 ## What this project is
 
-A Remotion-based engine for producing short, TikTok-style skits starring 72×72
-sprite characters. The design principle: **skits are data, not code.** A skit is
-a single TypeScript object (background + actors + timeline) that the generic
+A Remotion-based engine for producing short, **TikTok-style 3D-character
+skits**. The design principle: **skits are data, not code.** A skit is a
+single TypeScript object (background + actors + timeline) that the generic
 `SkitComp` in `src/skits/Skit.tsx` renders. Adding a new skit should require
 zero changes to the rendering pipeline.
+
+The character is a rigged FBX from the Cozy Cafe asset pack (Lips-Pack
+variant), animated via three.js + `@react-three/fiber`, composited inside a
+Remotion `<ThreeCanvas>`. Face expression (eyes + mouth) is driven by
+swapping textures on dedicated face submeshes per frame.
 
 ## Setup
 
@@ -26,32 +31,222 @@ Node 18+ (22 tested).
 ## Repo map
 
 - `src/index.ts` — Remotion entry; just calls `registerRoot`.
-- `src/Root.tsx` — **registers skits as Compositions**. Add every new skit to the
-  `skits` array here.
+- `src/Root.tsx` — **registers skits as Compositions**. Add every new skit to
+  the `skits` array here.
 - `src/skits/types.ts` — **the authoritative schema.** Read this before
   authoring a skit or extending the engine. All public-facing types live here.
-- `src/skits/Skit.tsx` — generic renderer. Walks the timeline, computes per-actor
-  state at time `sec`, renders background + shadows + characters + bubbles +
-  popups + flash + shake. No skit-specific logic here.
+- `src/skits/assets.ts` — **typed catalogues of every animation clip name,
+  outfit mesh name, viseme, and eye sprite.** This is the contract between
+  the FBX and the skit author — use the unions to author skits with
+  type-safe asset references.
+- `src/skits/legacyOutfits.ts` — maps legacy 2D `SpriteId`s
+  (`dave`/`alex`/`boss`/`janitor`/`intern`) to default 3D `Outfit` configs so
+  pre-3D skits still render.
+- `src/skits/Skit.tsx` — generic renderer. Walks the timeline, computes
+  per-actor state at time `sec`, renders the 3D scene + DOM overlays
+  (background, bubbles, popups, flash, shake). No skit-specific logic here.
+- `src/skits/withVisemes.ts` — runtime helper that merges generated viseme
+  tracks (from the voice generator) into a skit's `speak` actions.
 - `src/skits/scripts/*.ts` — one file per skit, exporting a `Skit` object.
-- `src/components/Character.tsx` — sprite-sheet animator. Reads 4×4 grids of
-  72-px frames from `public/`. Row = direction, column = idle frame.
+- `src/components/Character3D.tsx` — loads the shared FBX once, clones the
+  rig per actor via `SkeletonUtils`, drives `AnimationMixer` deterministically
+  from Remotion's frame clock, toggles outfit visibility, and swaps
+  `Body_Mouth` / `Body_Eye_L/R` materials per frame.
 - `src/components/SpeechBubble.tsx` — pop-in bubble, typewriter text, spring
   in/out, name badge above.
 - `src/components/PopupText.tsx` — big meme caption.
 - `src/components/Background.tsx` — animated gradient with sparkle layer.
-- `public/Character_024_Idle.png` — `male` sprite (288×288).
-- `public/Character_035_Idle.png` — `female` sprite (288×288).
+- `src/services/voiceService.ts` — ElevenLabs `/with-timestamps` integration
+  that produces MP3 + viseme JSON.
+- `src/scripts/generateVoices.ts` — pre-renders voices for each skit and
+  emits a `{skitName}.visemes.ts` module.
+- `public/models/Character_Talking.fbx` — the active character rig (from
+  Lips-Pack). Sitting alongside it are the texture PNGs the FBX references.
+- `public/sprites/eyes/*.png`, `public/sprites/lips_simple/*.png`,
+  `public/sprites/lips/*.png` — face overlay sprites swapped per frame.
 
-## Sprite sheet format (do not change without reason)
+## 3D engine architecture
 
-288×288 PNG, 4 columns × 4 rows of 72×72 frames. Rows, top to bottom:
-**down, left, right, up**. Each row is a 4-frame idle loop.
+### Coordinate spaces (read this before touching positioning)
 
-Hard-coded constants are in `src/components/Character.tsx`:
-`SPRITE_SIZE = 72`, `FRAMES_PER_ROW = 4`. If the user supplies a sheet with
-different dimensions, update these constants and verify rendering before
-committing.
+- **Skit-pixel space**: 1080×1920 portrait, origin at top-left, Y down.
+  Skits author here. A character's `(x, y)` is **center-bottom** — where
+  the feet land.
+- **World space**: standard three.js. Y up, X right, Z out of the screen.
+  Mapped from skit-pixel via `PIXELS_PER_UNIT = 480` in `Skit.tsx`:
+  - `worldX = (skitX - width/2) / PIXELS_PER_UNIT`
+  - `worldY = (height - skitY) / PIXELS_PER_UNIT`
+  - `worldZ = 0` (the canvas plane).
+- **Character height**: ~1.45 world units (~700 pixels rendered). The
+  head bone is at ~0.71 world units above feet; eye line at ~0.95.
+  `CHARACTER_HEIGHT_PX = 700` in `Skit.tsx` drives speech bubble + emote
+  Y placement. If you change the rig, update that constant.
+- **Default camera**: positioned at world `(0, 2.0, 6.4)`, looking at
+  `(0, 2.0, 0)`, fov 35° — frames the full portrait with a character at
+  feet-y ≈ 1500.
+
+### Render pipeline
+
+1. `<SkitComp>` walks the timeline, computes per-actor state at time `sec`,
+   computes interpolated camera state.
+2. Inside a `<ThreeCanvas>`: ambient + directional lights, perspective
+   camera driven by `<SceneCamera>`, and one `<Character3D>` per visible
+   actor.
+3. `Character3D` clones the cached FBX, applies outfit visibility, steps
+   its `AnimationMixer` to `mixer.setTime(clipTime)` deterministically each
+   frame, and swaps `Body_Mouth` / `Body_Eye_L/R` material maps to reflect
+   the current viseme + eye state.
+4. DOM overlays (speech bubbles, popups, emotes, flash) render on top of
+   the canvas via `<AbsoluteFill>`.
+
+### FBX rig (Character_Talking.fbx)
+
+- Skeleton: standard humanoid + `head_eyeR`, `head_eyeL` bones for eye
+  geometry.
+- Meshes: `Body_Head` (skin), `Body_Eye_L`, `Body_Eye_R`, `Body_Mouth` (the
+  swappable face submeshes), `Hair_Short`, `Hair_Ponytail`, `Beard_Full`,
+  `Beard_Lower`, `Clothes_Top_Tshirt`, `Clothes_Legs_Pants_Long`.
+- The FBX-default materials are MeshPhongMaterials. We clone them per
+  actor instance so per-actor swaps (skin tone, hair colour, face texture)
+  don't bleed across characters.
+- `frustumCulled = false` on every SkinnedMesh — cloned bounding spheres
+  reflect rest pose, not animated pose, and would otherwise be culled.
+- FBXLoader applies a `-π/2` X rotation on the root for Z-up → Y-up. We
+  bake that into the JSX wrapper inside the yaw group so per-actor yaw
+  applies to an already-upright rig.
+
+### Face expression system
+
+- **Body_Mouth**: material `M_Mouth`, UVs span 0..1 of the texture.
+  Default-bound to `sprites/lips_simple/Lips_s00_Default.png`. Each
+  speak/animate render swaps `.map` to the current viseme PNG.
+- **Body_Eye_L / Body_Eye_R**: material `M_Eyes` on each. Default-bound to
+  `sprites/eyes/Eye_0_Default.png`. The `eyes` action swaps both per
+  frame.
+- All three use `alphaTest = 0.5` + `polygonOffset` to punch the black
+  shape through the transparent background without z-fighting against
+  `Body_Head`.
+
+## Asset catalogue
+
+### Active character rig — Lips-Pack/Character_Talking.fbx
+
+**Meshes (10):** `Body_Head`, `Body_Eye_L`, `Body_Eye_R`, `Body_Mouth`,
+`Hair_Short`, `Hair_Ponytail`, `Beard_Full`, `Beard_Lower`,
+`Clothes_Top_Tshirt`, `Clothes_Legs_Pants_Long`.
+
+**Animations (17):**
+
+| Clip | Duration | Use |
+| --- | --- | --- |
+| `Walk_Loop` | 0.80s | Auto-played during `walk` actions |
+| `0TPose` | 0.03s | Fallback only — don't use intentionally |
+| `React_Stand_Discussion_1` | 6.10s | Long ambient dialogue idle |
+| `React_Stand_Discussion_2` | 5.47s | Alternate dialogue idle |
+| `React_Stand_ListeningNod` | 5.30s | Listening with subtle nods |
+| `React_Stand_Thinking` | 1.33s | Quick thinking beat |
+| `React_CrossedArms_Thinking` | 1.73s | Crossed-arms thinking |
+| `React_Stand_YES` | 1.47s | Affirmative nod |
+| `React_Stand_NO` | 1.67s | Head shake |
+| `React_CrossArms` | 0.80s | Cross arms |
+| `React_CrossArms_NodYES` | 1.20s | Crossed arms + nod yes |
+| `React_CrossArms_ShakeNO` | 1.47s | Crossed arms + shake no |
+| `React_ThumbsUp` | 0.73s | Quick thumbs up |
+| `React_WaveHello` | 1.47s | Wave hello |
+| `React_WaveBye` | 2.20s | Wave goodbye |
+| `React_Handshake` | 1.90s | Two-character handshake (USE THIS — underused) |
+| `React_Jump_Joy` | 0.87s | High-impact joy beat — save for finale |
+
+**Note:** No sit/eat/drink animations on this rig. For a cafe-themed skit
+involving sitting, sipping, or holding props, the Lips-Pack rig is not
+enough — see the Character variety section below.
+
+### Face sprites
+
+- **Eye sprites** (`public/sprites/eyes/`) — 16 total: `Eye_0_Default`,
+  `Eye_Angry`, `Eye_Blink1/2/3`, `Eye_Closed`, `Eye_Flat`,
+  `Eye_Frustrated`, `Eye_Hearts1/2/3/4`, `Eye_Kawaii`, `Eye_Sad Cry`,
+  `Eye_Starry1/2`.
+- **Mouth simplified** (`public/sprites/lips_simple/`) — 20 total:
+  - Visemes: `Lips_s00_Default` (closed), `s01_sh-ch`, `s02_a-i`,
+    `s03_ah-i`, `s04_th`, `s05_e-k-r`, `s06_s-z`, `s07_m-b-p`, `s08_f-v`,
+    `s09_L`, `s10_oh`, `s11_o-u-w`.
+  - Emotions: `s12_Upset`, `s13_Sad`, `s14_Angry`, `s15_Thinking`,
+    `s16_Cheeky`, `s17_Cute`, `s18_Surprised`, `s19_Confused`.
+- **Mouth detailed** (`public/sprites/lips/`) — 30 total (`Lips_00`–
+  `Lips_29`), same idea but finer-grained. Use only if simplified is too
+  coarse.
+
+### Character variety
+
+The Lips-Pack rig is intentionally limited (1 top, 1 bottom, 2 hair,
+2 beard). Variety across actors comes from these per-actor texture
+overrides:
+
+- **Skin tone** — `assets/Lips-Pack/Textures/Skintones/Skintone_1.png`
+  to `Skintone_6.png` (6 options). Bound to material `M_Skin`.
+- **Hair colour** — `assets/Lips-Pack/Textures/Haircolour/Haircolour_01.png`
+  to `Haircolour_16.png` (16 options). Bound to material `M_Hair`.
+- **Clothing colour** — pull from
+  `assets/Characters-Pack/Textures/Swatch Colours/`:
+  `Amber`, `Cappuccino`, `Cushion_Blue`, `Cushion_Orange`, `Cushion_Red`,
+  `Espresso`, `Glass`, `Green_Cactus`, `Green_Leaves`, `Grey`,
+  `Honey_Milk`, `Latte`, `Machine_Black`, `Matcha`,
+  `Milkshake_Strawberry`, `Olive_Sofa`, `Paper`, `Porcelain_Blue`,
+  `Porcelain_Orange`, `Silver`, `Whipped_Cream`. Assign per-actor to
+  `M_Clothes_Top`, `M_Clothes_Legs`, `M_Clothes_Shoes`.
+
+> **NOTE (not-yet-wired):** the `Outfit` type in `src/skits/assets.ts`
+> only models mesh visibility today. Per-actor skin/hair/clothing colour
+> overrides require extending `Outfit` (e.g. add `skintone`, `hairColor`,
+> `topColor`, etc.) and threading the texture binding through
+> `Character3D.tsx`. Flag this in skit pitches that need distinct-looking
+> actors.
+
+### Optional packs not yet integrated
+
+These FBXs live in `assets/Characters-Pack/` and are NOT currently used
+by the engine. They're catalogued here so brainstorm agents know what
+*could* be unlocked with extra work.
+
+**`Character_All.fbx`** — full Cozy Cafe character. **62 meshes, 43
+animations.** Adds:
+
+- **Tops (9):** `Tshirt`, `Tshirt_V`, `Hoodie`, `Sweater_TurtleNeck`,
+  `CollarShirt_Long`, `CollarShirt_Tucked`, `CollarBlouse_Long`,
+  `CollarBlouse_Short`.
+- **Aprons (2):** `Apron_Short`, `Apron_Long`.
+- **Bottoms (4):** `Pants_Long`, `Pants_Short_Pockets`, `Skirt`,
+  `Skirt_Long`.
+- **Hair (18):** `Short`, `ShortBob`, `ShortSpiky`, `SideSweep`, `Long`,
+  `Ponytail`, `Ponytail_Tight`, `Pigtails`, `Bun_Big`, `Bun_Small`,
+  `Hijab`, `Senior_A`, `Senior_B`, `Shave_AfroTop`, `Shave_BuzzAfro`,
+  `Shave_Buzzcut`, `Shave_Swept`, `Acc_Band`.
+- **Beards (2):** `Full`, `Lower`.
+- **Accessories (6):** `Glasses`, `Headphones_black/blue/pink/red/yellow`.
+- **Cafe animations (43):** all `Sofa_*`, `Floor_*`, `TallChair_*`,
+  `Tray_*`, `Bar_*` clips for sitting, eating, drinking, serving,
+  carrying. The cafe vocabulary the Lips-Pack doesn't have.
+
+`Character_All.fbx` does NOT have `Body_Mouth` / `Body_Eye_L/R`
+submeshes — only `Body_Head` with an `M_Eyes` material slot that uses a
+single sprite-atlas region. To get both the cafe outfit set AND face
+expression, you'd need to bone-remap the Lips-Pack face meshes onto the
+Characters-Pack rig (a multi-day port — Lips-Pack ships a Unity helper
+script for this).
+
+**`Items_All.fbx`** — 17 standalone prop meshes that could be placed
+in a scene: `held_Tray`, `held_Cupcake_Bubblegum`/`Matcha`/`Orange`/
+`RedVelvet`, `held_Coffee_Full`, `held_Coffee_Whip`,
+`held_Milkshake_Chocolate`/`Matcha`/`Strawberry`/`Empty`, and three
+cup-plate sets (`set_1`/`set_2`/`set_3`, each with a Cup and a Plate).
+These are normally attached to character hands via the `held` outfit
+slot on `Character_All.fbx`. They aren't integrated as standalone scene
+props — would need a new `prop` action type.
+
+**`Clothes_All.fbx`**, **`Hair_All.fbx`**, **`Accessories_All.fbx`** —
+the same meshes from `Character_All.fbx` but exported separately.
+Useful if you ever want to assemble a custom rig piecemeal.
 
 ## Adding a new skit (the common task)
 
@@ -69,26 +264,58 @@ in `aiTakingMyJob.ts` (a shared y-value for all actors) is a good default.
 Times are in **seconds** (not frames). The renderer converts using the skit's
 `fps` (default 30).
 
-## Adding a new character sprite
+### Action vocabulary (`src/skits/types.ts`)
 
-1. Drop a 288×288 sheet in `public/` matching the row layout above.
-2. Add a key to `SPRITE_FILES` in `src/components/Character.tsx`.
-3. Add the id to the `SpriteId` union in `src/skits/types.ts`.
+| Action | What it does |
+| --- | --- |
+| `walk` | Move actor from current position to `to` over time. Auto-plays `Walk_Loop`. |
+| `face` | Snap an actor's facing direction at a given time. |
+| `speak` | Pop-in speech bubble with typewriter reveal. Drives lip-sync via `visemes` if present. |
+| `animate` | Play a named FBX clip on an actor for a time window. Use `ClipName` union for type safety. |
+| `eyes` | Swap an actor's eye sprite for a time window. Use `EyeSprite` union. |
+| `emote` | Float an emoji above an actor's head. |
+| `tint` | Glow-tint an actor (rim light). |
+| `camera` | Tween camera position / lookAt / fov over a window. Hard cuts: tiny duration (~0.05s). |
+| `popupText` | Big meme caption that springs in and wobbles. |
+| `shake` | Camera shake for comedic emphasis. |
+| `flash` | Full-frame colour overlay. |
+
+## Adding a new character (visual variety)
+
+Today's path: pick `sprite: 'dave' | 'alex' | 'boss' | 'janitor' | 'intern'`
+and the renderer maps via `LEGACY_OUTFITS`. To add per-actor skin tone /
+hair colour / clothing colour, see the **not-yet-wired** note above —
+the schema needs extension.
 
 ## Adding a new timeline action type
 
-This is the invasive change — touches the schema and the renderer:
+Invasive change — touches the schema and the renderer:
 
 1. Add the variant to the `Action` union in `src/skits/types.ts`.
 2. Handle it in `src/skits/Skit.tsx`:
-   - If it affects actor state (position / direction / tint), update the
-     `computeActorStates` loop.
+   - If it affects actor state (position / direction / tint / clip / eyes
+     / viseme), update the `computeActorStates` loop.
+   - If it affects camera, update `computeCameraState`.
    - If it adds a visual overlay, filter for it by `type` at the top of
-     `SkitComp` (mirroring how `activePopups` / `activeShakes` etc. are done)
-     and render inside the shake-wrapped `AbsoluteFill`.
-3. Document it in the README's action reference table.
+     `SkitComp` (mirroring how `activePopups` / `activeShakes` etc. are
+     done) and render inside the shake-wrapped `AbsoluteFill`.
+3. If it consumes asset names, add a typed union to `src/skits/assets.ts`.
+4. Document it in the README's action reference table.
 
 Keep the renderer pure and data-driven — resist adding skit-specific branches.
+
+## Voiced skits + lip-sync
+
+1. Author the skit normally with `voiceId` on each `speak` action (no
+   `visemes` field needed).
+2. Run `npm run generate-voices` — calls ElevenLabs `/with-timestamps`,
+   writes `public/voices/{hash}.mp3` and `.visemes.json` for each line,
+   and emits `src/skits/scripts/{skitName}.visemes.ts` exporting a
+   `VisemeMap`.
+3. In `src/Root.tsx`, wrap the skit with `withVisemes(skit, visemes)` so
+   the renderer attaches viseme tracks at runtime.
+4. At render time, `Character3D` reads the active speak action's visemes
+   and swaps `Body_Mouth` per frame for lip-sync.
 
 ## Conventions
 
@@ -98,14 +325,21 @@ Keep the renderer pure and data-driven — resist adding skit-specific branches.
   each component self-contained for the Remotion bundler.
 - **Never reference `@remotion/*` internals** that aren't in the public API.
 - **Don't commit `out/` or `node_modules/`.** Renders are artifacts, not source.
+- **Use the typed unions in `src/skits/assets.ts`** (`ClipName`, `EyeSprite`,
+  `Viseme`, mesh names) when authoring skits — they're the contract between
+  the FBX and the skit data.
 
 ## Verification before shipping changes
 
 - `npx tsc --noEmit` — must pass.
 - `npm start` and visually check the affected skit (Remotion Studio supports
   hot reload; scrub the timeline).
-- If you added a new skit, render it end-to-end once to confirm it produces a
-  valid MP4.
+- If you added a new skit, render it end-to-end once with
+  `npx remotion render <CompositionId> out/<name>.mp4` to confirm it
+  produces a valid MP4.
+- For UI-affecting changes, render a single still mid-timeline with
+  `npx remotion still <CompositionId> out/check.png --frame=<N>` and
+  visually verify before doing a full render.
 
 ## Known quirks / gotchas
 
@@ -118,10 +352,43 @@ Keep the renderer pure and data-driven — resist adding skit-specific branches.
   overlap — use explicit `side` or stagger their `startSec`.
 - The background gradient hue-shifts each frame; if the user asks for a
   perfectly-static background, remove the `shift` math in `Background.tsx`.
+- FBX textures referenced by the model load from
+  `public/models/` relative to the FBX path. If you swap the model, also
+  copy any new texture filenames it references.
+- The FBX's MeshPhongMaterials need real lights — `flat linear` on
+  `<ThreeCanvas>` darkens everything. Current setup uses tone-mapped
+  output + brighter ambient/directional lights (see `Skit.tsx`).
+- M_Eyes and M_Mouth UVs span 0..1 of their textures, so single-sprite
+  PNGs (one shape filling the image) drop in cleanly. Multi-cell atlases
+  need explicit `texture.repeat` / `texture.offset`.
 
 ## Non-goals
 
-- This is not a general animation library. Scope stays at: sprite characters,
-  speech bubbles, meme captions, camera effects. Resist feature creep.
+- This is not a general animation library. Scope stays at: 3D-character
+  skits, speech bubbles, meme captions, camera effects. Resist feature creep.
 - Not a web app. Don't add routing, state management libraries, or UI
   frameworks beyond what Remotion needs.
+- Not a real-time game engine. Determinism (Remotion's frame-locked clock)
+  matters more than performance.
+
+## Brainstorm subagents (`.claude/agents/`)
+
+Four read-only research specialists for skit ideation. Spawn them via the
+Agent tool with `subagent_type: <name>`. They do NOT write to the
+codebase — they return structured analysis you (or the user) implement.
+
+- `tiktok-virality-strategist` — evaluates whether a concept will pop on
+  TikTok. Use proactively when brainstorming new skit ideas, picking
+  between candidates, or generating hook variants.
+- `skit-asset-utilizer` — maps a chosen concept onto specific FBX
+  animations, eye/mouth sprites, and underused engine systems (camera,
+  tint, popupText). Use after a concept is picked.
+- `cinematic-shot-designer` — turns the asset blocking into camera
+  action JSON with shot list, framing, and cutting rhythm. Use after the
+  asset-utilizer.
+- `skit-script-editor` — tightens dialogue for short-form video and
+  lip-sync. Use only for voiced skits.
+
+Typical flow for a new skit: divergent phase runs `tiktok-virality-strategist`
+and `skit-asset-utilizer` in parallel; convergent phase chains
+`cinematic-shot-designer` then `skit-script-editor` sequentially.

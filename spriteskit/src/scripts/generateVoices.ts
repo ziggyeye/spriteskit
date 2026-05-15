@@ -22,6 +22,7 @@ import path from 'path';
 import { generateVoice } from '../services/voiceService';
 import { aiTakingMyJob } from '../skits/scripts/aiTakingMyJob';
 import { aiTakingMyJobPt2 } from '../skits/scripts/aiTakingMyJobPt2';
+import { lastSongRemembered } from '../skits/scripts/lastSongRemembered';
 import { visemeKey } from '../skits/withVisemes';
 import type { VisemeFrame } from '../skits/assets';
 import type { Skit } from '../skits/types';
@@ -31,6 +32,7 @@ type SkitEntry = { skit: Skit; outFile: string };
 const SKITS: SkitEntry[] = [
   { skit: aiTakingMyJob, outFile: 'src/skits/scripts/aiTakingMyJob.visemes.ts' },
   { skit: aiTakingMyJobPt2, outFile: 'src/skits/scripts/aiTakingMyJobPt2.visemes.ts' },
+  { skit: lastSongRemembered, outFile: 'src/skits/scripts/lastSongRemembered.visemes.ts' },
 ];
 
 async function generateVoicesForSkit({ skit, outFile }: SkitEntry) {
@@ -44,18 +46,18 @@ async function generateVoicesForSkit({ skit, outFile }: SkitEntry) {
   }
 
   console.log(`\n=== ${skit.title} (${speakActions.length} lines) ===`);
-  const map: Record<string, VisemeFrame[]> = {};
+  const map: Record<string, { audioUrl: string; visemes: VisemeFrame[] }> = {};
 
   for (const sp of speakActions) {
     const actor = skit.actors.find((a) => a.id === sp.actorId);
     const label = actor?.name ?? sp.actorId;
     console.log(`  ${label}: "${sp.text.replace(/\n/g, ' ').slice(0, 60)}"`);
     try {
-      const { visemes } = await generateVoice({
+      const { audioUrl, visemes } = await generateVoice({
         voiceId: sp.voiceId!,
         text: sp.text,
       });
-      map[visemeKey(sp.voiceId!, sp.text)] = visemes;
+      map[visemeKey(sp.voiceId!, sp.text)] = { audioUrl, visemes };
     } catch (err) {
       console.error(`    ✗ Failed:`, err);
     }

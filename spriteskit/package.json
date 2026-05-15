@@ -6,7 +6,8 @@
     "start": "remotion studio",
     "build": "remotion render AiTakingMyJob out/ai-taking-my-job.mp4",
     "render": "remotion render",
-    "generate-voices": "tsx src/scripts/generateVoices.ts"
+    "generate-voices": "tsx src/scripts/generateVoices.ts",
+    "generate-humming": "tsx src/scripts/generateHumming.ts"
   },
   "dependencies": {
     "@react-three/fiber": "^8.18.0",

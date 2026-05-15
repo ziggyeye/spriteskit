@@ -4,6 +4,7 @@ import {
   AnimationClip,
   AnimationMixer,
   Bone,
+  Color,
   DoubleSide,
   Group,
   LoopOnce,
@@ -46,12 +47,19 @@ function eyeUrl(e: EyeSprite): string {
  * Preloaded alongside the model so each Character3D instance can bind
  * them synchronously after the FBX lands.
  */
+const SKIN_TONES = ['Skintone_1', 'Skintone_2', 'Skintone_3', 'Skintone_4', 'Skintone_5', 'Skintone_6'];
+const HAIR_COLOURS = Array.from({ length: 16 }, (_, i) => `Haircolour_${String(i + 1).padStart(2, '0')}`);
+const CLOTHING_SWATCHES = [
+  'Amber', 'Cappuccino', 'Cushion_Blue', 'Cushion_Orange', 'Cushion_Red',
+  'Espresso', 'Glass', 'Green_Cactus', 'Green_Leaves', 'Grey', 'Honey_Milk',
+  'Latte', 'Machine_Black', 'Matcha', 'Milkshake_Strawberry', 'Olive_Sofa',
+  'Paper', 'Porcelain_Blue', 'Porcelain_Orange', 'Silver', 'Whipped_Cream',
+];
+
 const PRELOAD_TEXTURE_URLS = [
-  'models/Skintone_2.png',
-  'models/Haircolour_08.png',
-  'models/Cushion_Red.png',
-  'models/Cushion_Blue.png',
-  'models/Espresso.png',
+  ...SKIN_TONES.map((s) => `models/${s}.png`),
+  ...HAIR_COLOURS.map((h) => `models/${h}.png`),
+  ...CLOTHING_SWATCHES.map((c) => `models/${c}.png`),
   'sprites/eyes/Eye_0_Default.png',
   'sprites/lips_simple/Lips_s00_Default.png',
 ];
@@ -138,6 +146,18 @@ type Props = {
   clipLoop: boolean;
   viseme: Viseme;
   eyes: EyeSprite;
+  /**
+   * Optional rim-glow colour applied to every body material's emissive
+   * channel for the lifetime of a `tint` action. Pass `undefined` for no
+   * tint.
+   */
+  tint?: string;
+  /**
+   * Per-frame opacity 0..1. Default 1. Drives the `fade` action — set
+   * below 1 to dissolve the character into the background. Applied to
+   * every body and face material.
+   */
+  opacity?: number;
 };
 
 /**
@@ -156,6 +176,8 @@ export const Character3D: React.FC<Props> = ({
   clipLoop,
   viseme,
   eyes,
+  tint,
+  opacity = 1,
 }) => {
   const source = useCharacterFbx();
   const frame = useCurrentFrame();
@@ -174,28 +196,12 @@ export const Character3D: React.FC<Props> = ({
       if (!head && (o as Bone).isBone && o.name === 'head') head = o as Bone;
     });
 
-    // Hard-coded swatch textures for each FBX material. Each clone gets
-    // its own material instance so per-actor swaps don't leak across.
-    const skinTex = loadTexture(staticFile('models/Skintone_2.png'));
-    const hairTex = loadTexture(staticFile('models/Haircolour_08.png'));
-    const topTex = loadTexture(staticFile('models/Cushion_Red.png'));
-    const legsTex = loadTexture(staticFile('models/Cushion_Blue.png'));
-    const shoesTex = loadTexture(staticFile('models/Espresso.png'));
-
-    const mapForMaterial = (name: string): Texture | null => {
-      switch (name) {
-        case 'M_Skin': return skinTex;
-        case 'M_Hair': return hairTex;
-        case 'M_Clothes_Top': return topTex;
-        case 'M_Clothes_Legs': return legsTex;
-        case 'M_Clothes_Shoes': return shoesTex;
-        case 'M_Accessories': return null;
-        default: return null;
-      }
-    };
-
-    // We hold onto references to the face-mesh materials so we can swap
-    // their `.map` per-frame in response to viseme/eye state changes.
+    // Per-actor material refs. We capture every named body material
+    // instance (multiple meshes may share an FBX material name — each
+    // gets its own clone) so the per-frame update block below can swap
+    // their `.map` (driven by Outfit fields) and `.emissive` (driven by
+    // the tint prop) without re-traversing the scene graph.
+    const bodyMaterials: Record<string, MeshPhongMaterial[]> = {};
     let mouthMaterial: MeshPhongMaterial | null = null;
     let eyeMaterialL: MeshPhongMaterial | null = null;
     let eyeMaterialR: MeshPhongMaterial | null = null;
@@ -217,10 +223,17 @@ export const Character3D: React.FC<Props> = ({
       for (const mat of cloned) {
         if (!mat) continue;
         const phong = mat as MeshPhongMaterial;
-        const tex = mapForMaterial(mat.name);
-        if (tex) {
-          phong.map = tex;
-          phong.color.setHex(0xffffff);
+        // Capture every body-colour material instance so per-frame
+        // outfit / tint updates can mutate them directly.
+        if (
+          mat.name === 'M_Skin' ||
+          mat.name === 'M_Hair' ||
+          mat.name === 'M_Clothes_Top' ||
+          mat.name === 'M_Clothes_Legs' ||
+          mat.name === 'M_Clothes_Shoes'
+        ) {
+          if (!bodyMaterials[mat.name]) bodyMaterials[mat.name] = [];
+          bodyMaterials[mat.name].push(phong);
         }
         if ('specular' in phong && phong.specular) phong.specular.setHex(0x111111);
         phong.shininess = 8;
@@ -268,6 +281,7 @@ export const Character3D: React.FC<Props> = ({
       mouthMaterial,
       eyeMaterialL,
       eyeMaterialR,
+      bodyMaterials,
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [source]);
@@ -296,17 +310,79 @@ export const Character3D: React.FC<Props> = ({
     }
   }
 
-  // Per-frame face texture swaps.
+  // Per-frame face texture swaps + outfit colour overrides + tint.
   if (rig) {
+    // Mouth (viseme).
     const mouthTex = loadTexture(visemeUrl(viseme));
     if (rig.mouthMaterial && (rig.mouthMaterial as MeshPhongMaterial).map !== mouthTex) {
       (rig.mouthMaterial as MeshPhongMaterial).map = mouthTex;
       (rig.mouthMaterial as MeshPhongMaterial).needsUpdate = true;
     }
+    // Eyes.
     const eyeTex = loadTexture(eyeUrl(eyes));
     for (const m of [rig.eyeMaterialL, rig.eyeMaterialR]) {
       if (m && (m as MeshPhongMaterial).map !== eyeTex) {
         (m as MeshPhongMaterial).map = eyeTex;
+        (m as MeshPhongMaterial).needsUpdate = true;
+      }
+    }
+    // Body colour swatches — driven by outfit fields, with defaults.
+    const skinTex = loadTexture(staticFile(`models/${outfit.skinTone ?? 'Skintone_2'}.png`));
+    const hairTex = loadTexture(staticFile(`models/${outfit.hairColor ?? 'Haircolour_08'}.png`));
+    const topTex = loadTexture(staticFile(`models/${outfit.topColor ?? 'Cushion_Red'}.png`));
+    const legsTex = loadTexture(staticFile(`models/${outfit.legColor ?? 'Cushion_Blue'}.png`));
+    const shoesTex = loadTexture(staticFile(`models/${outfit.shoesColor ?? 'Espresso'}.png`));
+    const colourBindings: Array<[string, Texture]> = [
+      ['M_Skin', skinTex],
+      ['M_Hair', hairTex],
+      ['M_Clothes_Top', topTex],
+      ['M_Clothes_Legs', legsTex],
+      ['M_Clothes_Shoes', shoesTex],
+    ];
+    for (const [name, tex] of colourBindings) {
+      const mats = rig.bodyMaterials[name] || [];
+      for (const mat of mats) {
+        if (mat.map !== tex) {
+          mat.map = tex;
+          mat.color.setHex(0xffffff);
+          mat.needsUpdate = true;
+        }
+      }
+    }
+    // Tint: apply as emissive on every body material for a soft rim
+    // glow. Reset to black when no tint is active.
+    const emissive = tint ? new Color(tint) : new Color(0x000000);
+    const emissiveIntensity = tint ? 0.55 : 0;
+    for (const name of ['M_Skin', 'M_Hair', 'M_Clothes_Top', 'M_Clothes_Legs', 'M_Clothes_Shoes']) {
+      const mats = rig.bodyMaterials[name] || [];
+      for (const mat of mats) {
+        mat.emissive.copy(emissive);
+        // MeshPhongMaterial doesn't expose emissiveIntensity, but
+        // scaling the colour gives the same effect.
+        mat.emissive.multiplyScalar(emissiveIntensity);
+        mat.needsUpdate = true;
+      }
+    }
+
+    // Opacity: tween all body + face materials together. We use
+    // material.transparent + material.opacity. Note: setting
+    // transparent=true unconditionally is fine — three.js still
+    // optimizes opaque pixels.
+    const clamped = Math.max(0, Math.min(1, opacity));
+    for (const name of ['M_Skin', 'M_Hair', 'M_Clothes_Top', 'M_Clothes_Legs', 'M_Clothes_Shoes']) {
+      const mats = rig.bodyMaterials[name] || [];
+      for (const mat of mats) {
+        mat.transparent = true;
+        mat.opacity = clamped;
+        mat.needsUpdate = true;
+      }
+    }
+    // Face submeshes (eyes/mouth) — already transparent for alphaTest,
+    // so we just modulate opacity. At opacity 0 they're invisible
+    // alongside the body.
+    for (const m of [rig.mouthMaterial, rig.eyeMaterialL, rig.eyeMaterialR]) {
+      if (m) {
+        (m as MeshPhongMaterial).opacity = clamped;
         (m as MeshPhongMaterial).needsUpdate = true;
       }
     }
