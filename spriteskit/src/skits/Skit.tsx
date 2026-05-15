@@ -7,11 +7,54 @@ import {
   Audio,
   Sequence,
 } from 'remotion';
+import { ThreeCanvas } from '@remotion/three';
 import { Background } from '../components/Background';
-import { Character } from '../components/Character';
+import { Character3D, directionToYaw } from '../components/Character3D';
 import { SpeechBubble } from '../components/SpeechBubble';
 import { PopupText } from '../components/PopupText';
-import type { Action, Direction, Position, Skit } from './types';
+import type {
+  Action,
+  CameraState,
+  Direction,
+  Position,
+  Skit,
+} from './types';
+import type { ClipName, EyeSprite, Viseme } from './assets';
+import { LEGACY_OUTFITS } from './legacyOutfits';
+
+// --- Coordinate space ---
+// Skits author in 2D pixel space (1080×1920). We project each (x, y) onto a
+// fixed world Z=0 plane and place a perspective camera so that plane fills
+// the canvas. PIXELS_PER_UNIT is chosen so the FBX character (~1.45 units
+// tall) renders at ~36% of the canvas height when drawn at its full scale.
+const PIXELS_PER_UNIT = 480;
+
+/**
+ * Character height in pixel space. Used to position speech bubbles / emotes
+ * above the head. Derived from the Lips-Pack FBX bbox: 1.45 world units ×
+ * PIXELS_PER_UNIT ≈ 696 px. If you swap the model for a different rig,
+ * update this constant accordingly.
+ */
+const CHARACTER_HEIGHT_PX = 700;
+
+function pixelToWorld(x: number, y: number, width: number, height: number): [number, number, number] {
+  const wx = (x - width / 2) / PIXELS_PER_UNIT;
+  // Three.js Y is up; skit Y is down. Translate so y=height maps to the floor.
+  const wy = (height - y) / PIXELS_PER_UNIT;
+  return [wx, wy, 0];
+}
+
+/** A default camera that frames the full 1080×1920 portrait. */
+function defaultCameraForCanvas(width: number, height: number): CameraState {
+  const fov = 35;
+  const worldH = height / PIXELS_PER_UNIT;
+  const dist = (worldH / 2) / Math.tan((fov / 2) * (Math.PI / 180));
+  return {
+    position: [0, worldH / 2, dist],
+    lookAt: [0, worldH / 2, 0],
+    fov,
+  };
+}
 
 /** Renders any Skit data object into a Remotion video. */
 export const SkitComp: React.FC<{ skit: Skit }> = ({ skit }) => {
@@ -21,6 +64,7 @@ export const SkitComp: React.FC<{ skit: Skit }> = ({ skit }) => {
 
   // Compute per-actor state by walking the timeline up to `sec`.
   const actorStates = computeActorStates(skit, sec);
+  const camera = computeCameraState(skit, sec, width, height);
 
   // All speak actions (for audio scheduling)
   const allSpeaks = skit.timeline.filter(
@@ -48,7 +92,7 @@ export const SkitComp: React.FC<{ skit: Skit }> = ({ skit }) => {
     (a) => a.type === 'emote' && sec >= a.startSec && sec < a.endSec
   ) as Extract<Action, { type: 'emote' }>[];
 
-  // Compute camera shake
+  // Compute camera shake (applied to the canvas wrapper in DOM).
   let shakeX = 0;
   let shakeY = 0;
   for (const s of activeShakes) {
@@ -84,37 +128,38 @@ export const SkitComp: React.FC<{ skit: Skit }> = ({ skit }) => {
       })}
 
       <Background bg={skit.background} />
-      <AbsoluteFill style={{ transform: `translate(${shakeX}px, ${shakeY}px)` }}>
-        {/* Ground shadow per actor */}
-        {skit.actors.map((actor) => {
-          const s = actorStates[actor.id];
-          if (!s.visible) return null;
-          return (
-            <GroundShadow
-              key={`shadow-${actor.id}`}
-              x={s.x}
-              y={s.y}
-              scale={actor.scale ?? 1}
-            />
-          );
-        })}
 
-        {/* Actors */}
-        {skit.actors.map((actor) => {
-          const s = actorStates[actor.id];
-          if (!s.visible) return null;
-          return (
-            <Character
-              key={actor.id}
-              sprite={actor.sprite}
-              direction={s.direction}
-              x={s.x}
-              y={s.y}
-              scale={actor.scale ?? 1}
-              tint={s.tint}
-            />
-          );
-        })}
+      <AbsoluteFill style={{ transform: `translate(${shakeX}px, ${shakeY}px)` }}>
+        {/* 3D scene */}
+        <ThreeCanvas width={width} height={height}>
+          <SceneCamera camera={camera} />
+          <ambientLight intensity={1.4} />
+          <directionalLight position={[3, 5, 4]} intensity={1.6} />
+          <directionalLight position={[-3, 2, -2]} intensity={0.5} />
+
+          {skit.actors.map((actor) => {
+            const s = actorStates[actor.id];
+            if (!s.visible) return null;
+            const outfit = actor.outfit ?? LEGACY_OUTFITS[actor.sprite];
+            const world = pixelToWorld(s.x, s.y, width, height);
+            return (
+              <Character3D
+                key={actor.id}
+                outfit={outfit}
+                position={world}
+                yawRad={directionToYaw(s.direction)}
+                scale={actor.scale ?? 1}
+                clip={s.clip}
+                clipTime={s.clipTime}
+                clipLoop={s.clipLoop}
+                viseme={s.viseme}
+                eyes={s.eyes}
+              />
+            );
+          })}
+        </ThreeCanvas>
+
+        {/* DOM overlays on top of the 3D canvas */}
 
         {/* Emotes above heads */}
         {activeEmotes.map((e, i) => {
@@ -123,7 +168,7 @@ export const SkitComp: React.FC<{ skit: Skit }> = ({ skit }) => {
           if (!actor || !s || !s.visible) return null;
           const localFrame = frame - Math.floor(e.startSec * fps);
           const bob = Math.sin(localFrame * 0.3) * 10;
-          const headY = s.y - 72 * 4 * (actor.scale ?? 1) - 40 + bob;
+          const headY = s.y - CHARACTER_HEIGHT_PX * (actor.scale ?? 1) - 40 + bob;
           return (
             <div
               key={`emote-${i}`}
@@ -148,8 +193,7 @@ export const SkitComp: React.FC<{ skit: Skit }> = ({ skit }) => {
           if (!actor || !s) return null;
           const duration = Math.round((sp.endSec - sp.startSec) * fps);
           const localFrame = frame - Math.round(sp.startSec * fps);
-          const headY = s.y - 72 * 4 * (actor.scale ?? 1);
-          // Place bubble above actor's head; offset left/right so it doesn't overlap
+          const headY = s.y - CHARACTER_HEIGHT_PX * (actor.scale ?? 1);
           const side: 'left' | 'right' =
             sp.side === 'auto' || !sp.side
               ? s.x < width / 2
@@ -214,25 +258,24 @@ export const SkitComp: React.FC<{ skit: Skit }> = ({ skit }) => {
   );
 };
 
-const GroundShadow: React.FC<{ x: number; y: number; scale: number }> = ({
-  x,
-  y,
-  scale,
-}) => (
-  <div
-    style={{
-      position: 'absolute',
-      left: x,
-      top: y - 12,
-      transform: 'translate(-50%, -50%)',
-      width: 160 * scale,
-      height: 30 * scale,
-      borderRadius: '50%',
-      background: 'rgba(0,0,0,0.35)',
-      filter: 'blur(6px)',
-    }}
-  />
-);
+/**
+ * Drives the R3F default perspective camera from skit camera state. Uses
+ * useThree so the camera ref is the canvas's actual default — works without
+ * @react-three/drei.
+ */
+const SceneCamera: React.FC<{ camera: CameraState }> = ({ camera }) => {
+  // Lazy require so the hook is only invoked inside Canvas.
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { useThree } = require('@react-three/fiber');
+  const { camera: cam } = useThree();
+  cam.position.set(camera.position[0], camera.position[1], camera.position[2]);
+  cam.fov = camera.fov ?? 35;
+  cam.near = 0.1;
+  cam.far = 5000;
+  cam.updateProjectionMatrix();
+  cam.lookAt(camera.lookAt[0], camera.lookAt[1], camera.lookAt[2]);
+  return null;
+};
 
 // --- Timeline interpretation ---
 
@@ -242,6 +285,11 @@ type ActorRuntimeState = {
   direction: Direction;
   visible: boolean;
   tint?: string;
+  clip: ClipName;
+  clipTime: number;
+  clipLoop: boolean;
+  viseme: Viseme;
+  eyes: EyeSprite;
 };
 
 function computeActorStates(
@@ -256,7 +304,15 @@ function computeActorStates(
       y: actor.start.y,
       direction: actor.facing ?? 'down',
       visible: !actor.hidden,
+      clip: 'React_Stand_Discussion_1',
+      clipTime: 0,
+      clipLoop: true,
+      viseme: 'Lips_s00_Default',
+      eyes: 'Eye_0_Default',
     };
+
+    // Track whether the actor is currently walking — drives Walk_Loop clip.
+    let walking = false;
 
     // Apply timeline actions that affect this actor, in order
     for (const action of skit.timeline) {
@@ -285,6 +341,10 @@ function computeActorStates(
               : dy > 0
               ? 'down'
               : 'up');
+          walking = true;
+          state.clip = 'Walk_Loop';
+          state.clipTime = (sec - action.startSec) % 0.8; // clip is 0.8s
+          state.clipLoop = true;
         } else if (t >= 1) {
           state.x = action.to.x;
           state.y = action.to.y;
@@ -302,12 +362,100 @@ function computeActorStates(
           state.tint = action.color;
         }
       }
+
+      if (action.type === 'animate' && action.actorId === actor.id) {
+        if (sec >= action.startSec && sec < action.endSec && !walking) {
+          state.clip = action.clip;
+          const loop = action.loop ?? true;
+          state.clipLoop = loop;
+          state.clipTime = sec - action.startSec;
+        }
+      }
+
+      if (action.type === 'eyes' && action.actorId === actor.id) {
+        if (sec >= action.startSec && sec < action.endSec) {
+          state.eyes = action.eyes;
+        }
+      }
+
+      if (action.type === 'speak' && action.actorId === actor.id) {
+        if (sec >= action.startSec && sec < action.endSec) {
+          state.viseme = resolveViseme(action, sec);
+        }
+      }
     }
 
     out[actor.id] = state;
   }
 
   return out;
+}
+
+function resolveViseme(
+  speak: Extract<Action, { type: 'speak' }>,
+  sec: number
+): Viseme {
+  if (speak.visemes && speak.visemes.length > 0) {
+    const local = sec - speak.startSec;
+    let current: Viseme = 'Lips_s00_Default';
+    for (const f of speak.visemes) {
+      if (f.startSec <= local) current = f.viseme;
+      else break;
+    }
+    return current;
+  }
+  // Procedural fallback: cycle a few open shapes at ~12Hz.
+  const cycle: Viseme[] = [
+    'Lips_s02_a-i',
+    'Lips_s10_oh',
+    'Lips_s05_e-k-r',
+    'Lips_s11_o-u-w',
+  ];
+  const idx = Math.floor((sec - speak.startSec) * 12) % cycle.length;
+  return cycle[idx];
+}
+
+function computeCameraState(
+  skit: Skit,
+  sec: number,
+  width: number,
+  height: number
+): CameraState {
+  const base = skit.defaultCamera ?? defaultCameraForCanvas(width, height);
+  // Find the most recent camera action with startSec ≤ sec.
+  const cams = skit.timeline.filter((a) => a.type === 'camera') as Extract<
+    Action,
+    { type: 'camera' }
+  >[];
+  let prev = base;
+  for (const c of cams) {
+    if (sec >= c.endSec) {
+      prev = c.to;
+      continue;
+    }
+    if (sec >= c.startSec) {
+      const t = (sec - c.startSec) / Math.max(0.001, c.endSec - c.startSec);
+      const eased = easeInOut(t);
+      return lerpCamera(prev, c.to, eased);
+    }
+  }
+  return prev;
+}
+
+function lerpCamera(a: CameraState, b: CameraState, t: number): CameraState {
+  return {
+    position: [
+      a.position[0] + (b.position[0] - a.position[0]) * t,
+      a.position[1] + (b.position[1] - a.position[1]) * t,
+      a.position[2] + (b.position[2] - a.position[2]) * t,
+    ],
+    lookAt: [
+      a.lookAt[0] + (b.lookAt[0] - a.lookAt[0]) * t,
+      a.lookAt[1] + (b.lookAt[1] - a.lookAt[1]) * t,
+      a.lookAt[2] + (b.lookAt[2] - a.lookAt[2]) * t,
+    ],
+    fov: (a.fov ?? 35) + ((b.fov ?? 35) - (a.fov ?? 35)) * t,
+  };
 }
 
 function easeInOut(t: number) {

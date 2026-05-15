@@ -8,6 +8,13 @@
  * `Skit` object, then register it in Root.tsx. No rendering code required.
  */
 
+import type { ClipName, EyeSprite, Outfit, VisemeFrame } from './assets';
+
+/**
+ * Legacy 2D sprite IDs. Kept for backwards-compat with the old 2D engine —
+ * old skits still author with these and the renderer auto-maps each one to a
+ * default 3D outfit (see `legacyOutfit` in Skit.tsx).
+ */
 export type SpriteId = 'dave' | 'alex' | 'boss' | 'janitor' | 'intern';
 
 export type Direction = 'down' | 'left' | 'right' | 'up';
@@ -21,17 +28,30 @@ export type Position = { x: number; y: number };
 
 export type Actor = {
   id: string;
+  /** Legacy sprite slot — picks the default 3D outfit if `outfit` is omitted. */
   sprite: SpriteId;
+  /** Per-actor 3D outfit. Overrides the legacy-sprite default. */
+  outfit?: Outfit;
   /** Display name shown over the speech bubble */
   name?: string;
   /** Starting position (center-x, bottom-y in 1080x1920 coordinate space) */
   start: Position;
   /** Starting facing direction */
   facing?: Direction;
-  /** Draw scale multiplier (1 = 4x sprite scale baseline) */
+  /** Draw scale multiplier (1 = the engine's default 3D character size) */
   scale?: number;
   /** If true, character starts offscreen and walks in */
   hidden?: boolean;
+};
+
+/** 3D camera state used to project the scene onto the 1080×1920 canvas. */
+export type CameraState = {
+  /** World-space camera position. */
+  position: [number, number, number];
+  /** World-space point the camera looks at. */
+  lookAt: [number, number, number];
+  /** Vertical field of view in degrees. Default 35. */
+  fov?: number;
 };
 
 /** A step on the skit timeline. All times are in seconds. */
@@ -67,6 +87,12 @@ export type Action =
       voiceId?: string;
       /** Path to pre-recorded audio or generated voice file (overrides voiceId if provided) */
       audioUrl?: string;
+      /**
+       * Viseme track for lip-sync, times relative to `startSec`. Populated by
+       * the voice generator from ElevenLabs alignment data.
+       * If omitted, the mouth flaps procedurally for the speak duration.
+       */
+      visemes?: VisemeFrame[];
     }
   | {
       type: 'popupText';
@@ -105,6 +131,34 @@ export type Action =
       color: string;
       startSec: number;
       endSec: number;
+    }
+  | {
+      /** Play a named FBX animation clip on an actor for a time window. */
+      type: 'animate';
+      actorId: string;
+      clip: ClipName;
+      startSec: number;
+      endSec: number;
+      /** Loop the clip across the window. Default true. */
+      loop?: boolean;
+    }
+  | {
+      /** Override the actor's eye sprite for a time window. */
+      eyes: EyeSprite;
+      type: 'eyes';
+      actorId: string;
+      startSec: number;
+      endSec: number;
+    }
+  | {
+      /**
+       * Tween the camera from its previous state to `to` over the window.
+       * Before any camera action fires, the skit-level `defaultCamera` is used.
+       */
+      type: 'camera';
+      to: CameraState;
+      startSec: number;
+      endSec: number;
     };
 
 export type Skit = {
@@ -121,4 +175,6 @@ export type Skit = {
   musicUrl?: string;
   /** Volume for music (0-1, default 0.5) */
   musicVolume?: number;
+  /** Initial camera state. If omitted, a sensible TikTok-portrait default is used. */
+  defaultCamera?: CameraState;
 };
