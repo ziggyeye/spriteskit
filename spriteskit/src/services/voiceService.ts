@@ -35,6 +35,14 @@ export interface VoiceConfig {
   text: string;
   stability?: number; // 0-1, default 0.5
   similarityBoost?: number; // 0-1, default 0.75
+  /**
+   * ElevenLabs model. Default `eleven_flash_v2_5` (fast + alignment, no
+   * audio tags). Use `eleven_v3` for expressive `[whispers]`/`[sighs]`
+   * audio tags — but v3 alignment data is uncertain, so v3 lines skip
+   * lip-sync generation. Use v3 ONLY for off-screen narrator/VO lines
+   * where the speaker has no visible mouth.
+   */
+  model?: 'eleven_flash_v2_5' | 'eleven_v3';
 }
 
 export type GenerateVoiceResult = {
@@ -53,11 +61,15 @@ export async function generateVoice(config: VoiceConfig): Promise<GenerateVoiceR
     );
   }
 
-  const { voiceId, text, stability = 0.5, similarityBoost = 0.75 } = config;
+  const { voiceId, text, stability = 0.5, similarityBoost = 0.75, model = 'eleven_flash_v2_5' } = config;
+  // v3 supports audio tags but its alignment shape is uncertain; we use
+  // the standard /text-to-speech endpoint (no alignment, no visemes).
+  const isV3 = model === 'eleven_v3';
 
+  // Cache key includes model so flash vs v3 don't collide.
   const hash = crypto
     .createHash('sha256')
-    .update(`${voiceId}:${text}`)
+    .update(`${voiceId}:${model}:${text}`)
     .digest('base64')
     .replace(/[/+=]/g, '_')
     .slice(0, 24);
@@ -76,41 +88,46 @@ export async function generateVoice(config: VoiceConfig): Promise<GenerateVoiceR
     };
   }
 
-  const response = await fetch(
-    `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/with-timestamps`,
-    {
-      method: 'POST',
-      headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        text,
-        model_id: 'eleven_flash_v2_5',
-        voice_settings: { stability, similarity_boost: similarityBoost },
-      }),
-    }
-  );
+  const endpoint = isV3
+    ? `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`
+    : `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/with-timestamps`;
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      text,
+      model_id: model,
+      voice_settings: { stability, similarity_boost: similarityBoost },
+    }),
+  });
 
   if (!response.ok) {
     const error = await response.text();
     throw new Error(`ElevenLabs API error: ${response.status} - ${error}`);
   }
 
-  const payload = (await response.json()) as {
-    audio_base64: string;
-    alignment?: {
-      characters: string[];
-      character_start_times_seconds: number[];
-      character_end_times_seconds: number[];
+  let visemes: VisemeFrame[] = [];
+  if (isV3) {
+    // Standard endpoint returns raw audio bytes (mp3), not JSON.
+    const audioBuf = Buffer.from(await response.arrayBuffer());
+    fs.writeFileSync(audioPath, audioBuf);
+  } else {
+    const payload = (await response.json()) as {
+      audio_base64: string;
+      alignment?: {
+        characters: string[];
+        character_start_times_seconds: number[];
+        character_end_times_seconds: number[];
+      };
     };
-  };
-
-  fs.writeFileSync(audioPath, Buffer.from(payload.audio_base64, 'base64'));
-
-  const visemes = payload.alignment
-    ? alignmentToVisemes(text, payload.alignment)
-    : [];
+    fs.writeFileSync(audioPath, Buffer.from(payload.audio_base64, 'base64'));
+    if (payload.alignment) visemes = alignmentToVisemes(text, payload.alignment);
+  }
   fs.writeFileSync(visemePath, JSON.stringify(visemes));
 
-  console.log(`✓ Voice + ${visemes.length} visemes: ${path.basename(audioPath)}`);
+  const label = isV3 ? `Voice (${model}, no visemes)` : `Voice + ${visemes.length} visemes`;
+  console.log(`✓ ${label}: ${path.basename(audioPath)}`);
   return {
     audioUrl: `/voices/${hash}.mp3`,
     visemesUrl: `/voices/${hash}.visemes.json`,

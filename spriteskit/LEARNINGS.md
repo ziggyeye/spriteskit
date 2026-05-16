@@ -91,6 +91,37 @@ See the parts attach block in [Character3D.tsx](src/components/Character3D.tsx).
 **The skeleton rebind is the key trick.** Without it, the part still
 references the source FBX's bones and animates with a phantom rig.
 
+### Animations are portable across same-skeleton rigs — no rebind needed
+
+Once we'd done the parts skeleton-rebind, we wondered if we could
+also unlock the Characters-Pack's 43 cafe animations
+(`Sofa_Sit`, `Tray_Walk`, `Floor_Cup_Drink_Loop`, etc) which lived in
+`Character_All.fbx`.
+
+It turned out **even simpler than parts**: animation clips reference
+bones by NAME via `track.name = 'bonename.property'`. As long as the
+target rig has the same bone names, the clip plays directly. No
+clone, no rebind, no skeleton remap — just `mixer.clipAction(clip)`.
+
+We did one inspection pass to confirm:
+
+- 43 clips × 162 tracks each, targeting 54 unique bone names.
+- 53 of 54 match the Lips-Pack rig exactly. The 54th is `Armature`
+  (the FBX parent group), which we filter out — its tracks were
+  root-motion translations we don't want anyway.
+
+Implementation: load `Character_All.fbx` purely to harvest its
+`animations[]`, drop tracks matching `Armature.*`, filter out names
+that collide with the base rig (`Walk_Loop`, `0TPose`,
+`Stand_Pose`, `Wait_Pose`), merge into the per-actor `clips` map.
+Smoke-tested with `Sofa_Sit`: actor lands in the seated pose
+exactly as if a sofa were under them.
+
+This is the cheaper analogue of the parts skeleton-rebind — works
+whenever two FBX rigs share bone names, which is common for asset
+packs from the same family. Worth checking before assuming you need
+to rebuild or remap anything.
+
 ### Held items need their bones reparented to a hand
 
 The Lips-Pack rig has `held_item_tray`, `held_item_plate`,
@@ -297,6 +328,17 @@ tunes.
 3. Accept it and design around it (overlapping loops naturally blend).
 
 We went with option 3 for this project.
+
+### ALWAYS get user approval of dialogue before `npm run generate-voices`
+
+ElevenLabs charges API credits per line. Generating voices on un-approved
+dialogue wastes money and forces a regeneration after the inevitable
+rewrite. Hard rule: when the script-editor agent (or any other source)
+produces dialogue, the main agent pauses and shows the script for
+explicit approval BEFORE calling the voice generator.
+
+Mentioned again in [.claude/agents/skit-script-editor.md](.claude/agents/skit-script-editor.md)
+and AGENTS.md so subagents and future runs see it.
 
 ### Voice TTS is much louder than Sound Effects
 

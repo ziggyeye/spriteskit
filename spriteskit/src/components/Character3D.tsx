@@ -40,6 +40,26 @@ const PARTS_FBXS = [
   'models/Items_All.fbx',
 ];
 
+/**
+ * Extra animation clips harvested from Character_All.fbx (Characters-Pack).
+ * Targets the same 53-bone skeleton as the base Lips-Pack rig — verified
+ * by name. Tracks that target the 'Armature' parent group are filtered
+ * out; clips that duplicate Lips-Pack's `Walk_Loop` / `0TPose` / etc. are
+ * also dropped to avoid name collision.
+ *
+ * Cafe vocabulary: Sofa_Sit, Floor_Sit, TallChair_Sit, Tray_Walk,
+ * Tray_Pickup, Tray_Serve_*, Sofa_/Floor_/TallChair_ *_Drink/Eat/Pickup
+ * (sitting, eating, drinking, serving, carrying — 43 clips total).
+ */
+let extraAnimations: Map<string, AnimationClip> = new Map();
+const EXTRA_ANIMATIONS_FBX = 'models/Character_All.fbx';
+/**
+ * Clip names that exist in both Character_All.fbx AND the base Lips-Pack
+ * rig. We use the base rig's version (it's identical) and drop the
+ * Character_All copy to avoid ambiguity.
+ */
+const SKIP_EXTRA_CLIPS = new Set(['Walk_Loop', '0TPose', 'Stand_Pose', 'Wait_Pose']);
+
 const textureCache = new Map<string, Texture>();
 function loadTexture(url: string): Texture {
   let t = textureCache.get(url);
@@ -78,7 +98,6 @@ const PRELOAD_TEXTURE_URLS = [
   ...SKIN_TONES.map((s) => `models/${s}.png`),
   ...HAIR_COLOURS.map((h) => `models/${h}.png`),
   ...CLOTHING_SWATCHES.map((c) => `models/${c}.png`),
-  'models/T_CatCafe_Atlas.png',
   'sprites/eyes/Eye_0_Default.png',
   'sprites/lips/Lips_00.png',
 ];
@@ -125,7 +144,34 @@ export function ensureFbxLoaded(): Promise<Group> {
         }
       });
 
-      Promise.all([fbxLoadPromise, Promise.all(texPromises), partsLoadPromise]).then(
+      // Load Character_All.fbx purely to harvest its 43 cafe animation
+      // clips. We don't use its meshes — its `Body_Head` has baked-in
+      // face UVs that conflict with our face-submesh pipeline.
+      const extraAnimsPromise = new Promise<void>((res, rej) => {
+        new FBXLoader().load(
+          staticFile(EXTRA_ANIMATIONS_FBX),
+          (g) => {
+            for (const clip of g.animations) {
+              if (SKIP_EXTRA_CLIPS.has(clip.name)) continue;
+              // Strip any tracks targeting 'Armature' (the FBX parent
+              // group) — that bone doesn't exist on our rig and Three
+              // would silently no-op the track, but cleaner to remove.
+              const filtered = clip.clone();
+              filtered.tracks = filtered.tracks.filter(
+                (t) => !t.name.startsWith('Armature.'),
+              );
+              extraAnimations.set(clip.name, filtered);
+            }
+            // eslint-disable-next-line no-console
+            console.log('[Character3D] extra animations:', extraAnimations.size);
+            res();
+          },
+          undefined,
+          rej,
+        );
+      });
+
+      Promise.all([fbxLoadPromise, Promise.all(texPromises), partsLoadPromise, extraAnimsPromise]).then(
         ([g]) => {
           fbxSource = g;
           if (fbxHandle !== null) continueRender(fbxHandle);
@@ -228,6 +274,13 @@ export const Character3D: React.FC<Props> = ({
     const mixer = new AnimationMixer(root);
     const clips: Record<string, AnimationClip> = {};
     for (const c of source.animations) clips[c.name] = c;
+    // Merge the cafe-vocab clips harvested from Character_All.fbx.
+    // Same skeleton (verified by name), so they play directly on our
+    // mixer. The base rig's clips take precedence on name collision
+    // (we filtered duplicates during harvest above).
+    for (const [name, clip] of extraAnimations) {
+      if (!clips[name]) clips[name] = clip;
+    }
 
     // Find head bone (kept for future use — eg. pointing speech bubbles).
     let head: Bone | null = null;
@@ -456,12 +509,8 @@ export const Character3D: React.FC<Props> = ({
     const topTex = loadTexture(staticFile(`models/${outfit.topColor ?? 'Cushion_Red'}.png`));
     const legsTex = loadTexture(staticFile(`models/${outfit.legColor ?? 'Cushion_Blue'}.png`));
     const shoesTex = loadTexture(staticFile(`models/${outfit.shoesColor ?? 'Espresso'}.png`));
-    // Parts-FBX material defaults. Apron uses a clothing swatch; the
-    // cafe atlas + accessories use the multi-region T_CatCafe_Atlas
-    // (which encodes their colours by UV region, not by binding).
+    // Apron still uses a clothing swatch (it's a fabric).
     const apronTex = loadTexture(staticFile(`models/${outfit.apronColor ?? 'Whipped_Cream'}.png`));
-    const atlasTex = loadTexture(staticFile('models/T_CatCafe_Atlas.png'));
-    const accessoriesTex = loadTexture(staticFile('models/T_CatCafe_Atlas.png'));
     const colourBindings: Array<[string, Texture]> = [
       ['M_Skin', skinTex],
       ['M_Hair', hairTex],
@@ -469,8 +518,6 @@ export const Character3D: React.FC<Props> = ({
       ['M_Clothes_Legs', legsTex],
       ['M_Clothes_Shoes', shoesTex],
       ['M_Apron', apronTex],
-      ['M_Accessories', accessoriesTex],
-      ['M_CatCafe_Atlas', atlasTex],
     ];
     for (const [name, tex] of colourBindings) {
       const mats = rig.bodyMaterials[name] || [];
@@ -482,6 +529,32 @@ export const Character3D: React.FC<Props> = ({
         }
       }
     }
+
+    // Accessories + held items: render as FLAT-COLOURED meshes (no
+    // texture map). The asset pack's UV atlas mapping looks broken
+    // outside the original cafe context — clean solid colour reads
+    // better. We resolve the colour PER MESH so e.g. glasses can be
+    // black while a held coffee is brown. The per-mesh material
+    // clones (done in the traverse pass above) ensure colour changes
+    // don't bleed across mesh types that share the source material.
+    const accessoryHex = outfit.accessoryColor ?? '#1a1a1a';
+    const heldHex = outfit.heldColor ?? '#8a5a3b';
+    rig.root.traverse((o) => {
+      const m = o as SkinnedMesh;
+      if (!m.isSkinnedMesh) return;
+      const isAccessory = m.name.startsWith('Accessory_') || m.name === 'Hair_Acc_Band';
+      const isHeld = m.name.startsWith('held_');
+      if (!isAccessory && !isHeld) return;
+      const hex = isAccessory ? accessoryHex : heldHex;
+      const mats = Array.isArray(m.material) ? m.material : [m.material];
+      for (const mat of mats) {
+        if (!mat) continue;
+        const phong = mat as MeshPhongMaterial;
+        phong.map = null; // strip atlas — flat colour only
+        phong.color.set(hex);
+        phong.needsUpdate = true;
+      }
+    });
     // Tint: apply as emissive on every body material for a soft rim
     // glow. Reset to black when no tint is active.
     const emissive = tint ? new Color(tint) : new Color(0x000000);

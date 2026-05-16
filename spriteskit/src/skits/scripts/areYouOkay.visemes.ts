@@ -2,33 +2,33 @@
 import type { VisemeMap } from '../withVisemes';
 
 export const visemes: VisemeMap = {
-  "cgSgspJ2msm6clMCkdW9::...babe?": {
-    "audioUrl": "/voices/mXfJkGzZ9bC0seWCnCvs_mrb.mp3",
+  "cgSgspJ2msm6clMCkdW9::eleven_flash_v2_5::...babe?": {
+    "audioUrl": "/voices/Rpp5CGXWPTGYMdLeh7QDstaR.mp3",
     "visemes": [
       {
         "startSec": 0,
         "viseme": "Lips_00"
       },
       {
-        "startSec": 0.302,
+        "startSec": 0.255,
         "viseme": "Lips_20"
       },
       {
-        "startSec": 0.4103333333333333,
+        "startSec": 0.3983333333333333,
         "viseme": "Lips_00"
       },
       {
-        "startSec": 0.5186666666666666,
+        "startSec": 0.5416666666666667,
         "viseme": "Lips_20"
       },
       {
-        "startSec": 0.627,
+        "startSec": 0.685,
         "viseme": "Lips_00"
       }
     ]
   },
-  "cgSgspJ2msm6clMCkdW9::Are you mad at me?": {
-    "audioUrl": "/voices/RFst644deXqXXD117zL_3VTo.mp3",
+  "cgSgspJ2msm6clMCkdW9::eleven_flash_v2_5::Are you mad at me?": {
+    "audioUrl": "/voices/FBU0WC76fwNB98QgKK5q58nc.mp3",
     "visemes": [
       {
         "startSec": 0,
@@ -83,38 +83,38 @@ export const visemes: VisemeMap = {
         "viseme": "Lips_00"
       },
       {
-        "startSec": 0.58,
+        "startSec": 0.569,
         "viseme": "Lips_20"
       },
       {
-        "startSec": 0.673,
+        "startSec": 0.6619999999999999,
         "viseme": "Lips_06"
       },
       {
-        "startSec": 0.766,
+        "startSec": 0.755,
         "viseme": "Lips_00"
       }
     ]
   },
-  "onwK4e9ZLuTAKqWW03F9::No.": {
-    "audioUrl": "/voices/l7uH7ex3AV4W5y8CkH9rlZm0.mp3",
+  "onwK4e9ZLuTAKqWW03F9::eleven_flash_v2_5::No.": {
+    "audioUrl": "/voices/EtfUWIHhyapyJ2vL1U6b3zq3.mp3",
     "visemes": [
       {
         "startSec": 0,
         "viseme": "Lips_18"
       },
       {
-        "startSec": 0.1625,
+        "startSec": 0.1275,
         "viseme": "Lips_08"
       },
       {
-        "startSec": 0.325,
+        "startSec": 0.255,
         "viseme": "Lips_00"
       }
     ]
   },
-  "cgSgspJ2msm6clMCkdW9::What are you thinking about.": {
-    "audioUrl": "/voices/khpciQRvu23QkdegkkY3o4Jb.mp3",
+  "cgSgspJ2msm6clMCkdW9::eleven_flash_v2_5::What are you thinking about.": {
+    "audioUrl": "/voices/IUDY2eopDYZNsLhf8g9Sb25w.mp3",
     "visemes": [
       {
         "startSec": 0,
@@ -161,49 +161,49 @@ export const visemes: VisemeMap = {
         "viseme": "Lips_18"
       },
       {
-        "startSec": 0.4256666666666667,
+        "startSec": 0.4295,
         "viseme": "Lips_06"
       },
       {
-        "startSec": 0.4683333333333333,
+        "startSec": 0.47600000000000003,
         "viseme": "Lips_19"
       },
       {
-        "startSec": 0.5536666666666666,
+        "startSec": 0.5690000000000001,
         "viseme": "Lips_06"
       },
       {
-        "startSec": 0.5963333333333334,
+        "startSec": 0.6155,
         "viseme": "Lips_19"
       },
       {
-        "startSec": 0.639,
+        "startSec": 0.662,
         "viseme": "Lips_00"
       },
       {
-        "startSec": 0.685,
+        "startSec": 0.708,
         "viseme": "Lips_01"
       },
       {
-        "startSec": 0.75475,
+        "startSec": 0.7805,
         "viseme": "Lips_20"
       },
       {
-        "startSec": 0.8245,
+        "startSec": 0.853,
         "viseme": "Lips_09"
       },
       {
-        "startSec": 0.89425,
+        "startSec": 0.9255,
         "viseme": "Lips_18"
       },
       {
-        "startSec": 0.964,
+        "startSec": 0.998,
         "viseme": "Lips_00"
       }
     ]
   },
-  "onwK4e9ZLuTAKqWW03F9::If a hot dog is a sandwich.": {
-    "audioUrl": "/voices/U__npT684sUobv4N7uFenwNv.mp3",
+  "onwK4e9ZLuTAKqWW03F9::eleven_flash_v2_5::If a hot dog is a sandwich.": {
+    "audioUrl": "/voices/0kS51rG7toGV6tLX2ufEo3UE.mp3",
     "visemes": [
       {
         "startSec": 0,
@@ -218,136 +218,136 @@ export const visemes: VisemeMap = {
         "viseme": "Lips_00"
       },
       {
-        "startSec": 0.174,
+        "startSec": 0.186,
         "viseme": "Lips_01"
-      },
-      {
-        "startSec": 0.197,
-        "viseme": "Lips_00"
-      },
-      {
-        "startSec": 0.255,
-        "viseme": "Lips_11"
-      },
-      {
-        "startSec": 0.3016666666666667,
-        "viseme": "Lips_02"
-      },
-      {
-        "startSec": 0.34833333333333333,
-        "viseme": "Lips_18"
-      },
-      {
-        "startSec": 0.395,
-        "viseme": "Lips_00"
-      },
-      {
-        "startSec": 0.441,
-        "viseme": "Lips_18"
-      },
-      {
-        "startSec": 0.5263333333333333,
-        "viseme": "Lips_03"
-      },
-      {
-        "startSec": 0.6116666666666666,
-        "viseme": "Lips_19"
-      },
-      {
-        "startSec": 0.697,
-        "viseme": "Lips_00"
-      },
-      {
-        "startSec": 1.08,
-        "viseme": "Lips_06"
-      },
-      {
-        "startSec": 1.1555,
-        "viseme": "Lips_14"
-      },
-      {
-        "startSec": 1.231,
-        "viseme": "Lips_00"
-      },
-      {
-        "startSec": 1.277,
-        "viseme": "Lips_01"
-      },
-      {
-        "startSec": 1.312,
-        "viseme": "Lips_00"
-      },
-      {
-        "startSec": 1.358,
-        "viseme": "Lips_14"
-      },
-      {
-        "startSec": 1.4211428571428573,
-        "viseme": "Lips_01"
-      },
-      {
-        "startSec": 1.4842857142857144,
-        "viseme": "Lips_18"
-      },
-      {
-        "startSec": 1.6105714285714288,
-        "viseme": "Lips_07"
-      },
-      {
-        "startSec": 1.673714285714286,
-        "viseme": "Lips_06"
-      },
-      {
-        "startSec": 1.7368571428571429,
-        "viseme": "Lips_15"
-      },
-      {
-        "startSec": 1.8,
-        "viseme": "Lips_00"
-      }
-    ]
-  },
-  "onwK4e9ZLuTAKqWW03F9::I've decided it isn't.": {
-    "audioUrl": "/voices/B58NpzMdFJXgY8MN5CkE5R2L.mp3",
-    "visemes": [
-      {
-        "startSec": 0,
-        "viseme": "Lips_02"
-      },
-      {
-        "startSec": 0.1045,
-        "viseme": "Lips_17"
       },
       {
         "startSec": 0.209,
         "viseme": "Lips_00"
       },
       {
-        "startSec": 0.232,
-        "viseme": "Lips_18"
+        "startSec": 0.267,
+        "viseme": "Lips_11"
       },
       {
-        "startSec": 0.305,
-        "viseme": "Lips_06"
-      },
-      {
-        "startSec": 0.378,
-        "viseme": "Lips_14"
-      },
-      {
-        "startSec": 0.45099999999999996,
+        "startSec": 0.32133333333333336,
         "viseme": "Lips_02"
       },
       {
-        "startSec": 0.524,
+        "startSec": 0.37566666666666665,
         "viseme": "Lips_18"
       },
       {
-        "startSec": 0.597,
+        "startSec": 0.43,
+        "viseme": "Lips_00"
+      },
+      {
+        "startSec": 0.476,
+        "viseme": "Lips_18"
+      },
+      {
+        "startSec": 0.565,
+        "viseme": "Lips_03"
+      },
+      {
+        "startSec": 0.654,
+        "viseme": "Lips_19"
+      },
+      {
+        "startSec": 0.743,
+        "viseme": "Lips_00"
+      },
+      {
+        "startSec": 1.068,
         "viseme": "Lips_06"
       },
       {
-        "startSec": 0.6699999999999999,
+        "startSec": 1.155,
+        "viseme": "Lips_14"
+      },
+      {
+        "startSec": 1.242,
+        "viseme": "Lips_00"
+      },
+      {
+        "startSec": 1.289,
+        "viseme": "Lips_01"
+      },
+      {
+        "startSec": 1.324,
+        "viseme": "Lips_00"
+      },
+      {
+        "startSec": 1.382,
+        "viseme": "Lips_14"
+      },
+      {
+        "startSec": 1.4582857142857142,
+        "viseme": "Lips_01"
+      },
+      {
+        "startSec": 1.5345714285714285,
+        "viseme": "Lips_18"
+      },
+      {
+        "startSec": 1.687142857142857,
+        "viseme": "Lips_07"
+      },
+      {
+        "startSec": 1.7634285714285713,
+        "viseme": "Lips_06"
+      },
+      {
+        "startSec": 1.8397142857142856,
+        "viseme": "Lips_15"
+      },
+      {
+        "startSec": 1.916,
+        "viseme": "Lips_00"
+      }
+    ]
+  },
+  "onwK4e9ZLuTAKqWW03F9::eleven_flash_v2_5::I've decided it isn't.": {
+    "audioUrl": "/voices/Q46pLfHgEBODMjUD35QeLi8a.mp3",
+    "visemes": [
+      {
+        "startSec": 0,
+        "viseme": "Lips_02"
+      },
+      {
+        "startSec": 0.1105,
+        "viseme": "Lips_17"
+      },
+      {
+        "startSec": 0.221,
+        "viseme": "Lips_00"
+      },
+      {
+        "startSec": 0.244,
+        "viseme": "Lips_18"
+      },
+      {
+        "startSec": 0.3152857142857143,
+        "viseme": "Lips_06"
+      },
+      {
+        "startSec": 0.38657142857142857,
+        "viseme": "Lips_14"
+      },
+      {
+        "startSec": 0.45785714285714285,
+        "viseme": "Lips_02"
+      },
+      {
+        "startSec": 0.5291428571428571,
+        "viseme": "Lips_18"
+      },
+      {
+        "startSec": 0.6004285714285714,
+        "viseme": "Lips_06"
+      },
+      {
+        "startSec": 0.6717142857142857,
         "viseme": "Lips_18"
       },
       {
@@ -355,35 +355,35 @@ export const visemes: VisemeMap = {
         "viseme": "Lips_00"
       },
       {
-        "startSec": 0.801,
+        "startSec": 0.813,
         "viseme": "Lips_06"
       },
       {
-        "startSec": 0.8360000000000001,
+        "startSec": 0.8765,
         "viseme": "Lips_18"
       },
       {
-        "startSec": 0.871,
+        "startSec": 0.94,
         "viseme": "Lips_00"
       },
       {
-        "startSec": 0.929,
+        "startSec": 1.01,
         "viseme": "Lips_06"
       },
       {
-        "startSec": 0.994,
+        "startSec": 1.0774,
         "viseme": "Lips_14"
       },
       {
-        "startSec": 1.059,
+        "startSec": 1.1448,
         "viseme": "Lips_01"
       },
       {
-        "startSec": 1.124,
+        "startSec": 1.2122,
         "viseme": "Lips_18"
       },
       {
-        "startSec": 1.254,
+        "startSec": 1.347,
         "viseme": "Lips_00"
       }
     ]

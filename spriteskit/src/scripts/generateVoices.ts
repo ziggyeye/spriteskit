@@ -24,6 +24,8 @@ import { aiTakingMyJob } from '../skits/scripts/aiTakingMyJob';
 import { aiTakingMyJobPt2 } from '../skits/scripts/aiTakingMyJobPt2';
 import { lastSongRemembered } from '../skits/scripts/lastSongRemembered';
 import { areYouOkay } from '../skits/scripts/areYouOkay';
+import { tedTalk } from '../skits/scripts/tedTalk';
+import { widowmaker } from '../skits/scripts/widowmaker';
 import { visemeKey } from '../skits/withVisemes';
 import type { VisemeFrame } from '../skits/assets';
 import type { Skit } from '../skits/types';
@@ -35,6 +37,8 @@ const SKITS: SkitEntry[] = [
   { skit: aiTakingMyJobPt2, outFile: 'src/skits/scripts/aiTakingMyJobPt2.visemes.ts' },
   { skit: lastSongRemembered, outFile: 'src/skits/scripts/lastSongRemembered.visemes.ts' },
   { skit: areYouOkay, outFile: 'src/skits/scripts/areYouOkay.visemes.ts' },
+  { skit: tedTalk, outFile: 'src/skits/scripts/tedTalk.visemes.ts' },
+  { skit: widowmaker, outFile: 'src/skits/scripts/widowmaker.visemes.ts' },
 ];
 
 async function generateVoicesForSkit({ skit, outFile }: SkitEntry) {
@@ -58,8 +62,9 @@ async function generateVoicesForSkit({ skit, outFile }: SkitEntry) {
       const { audioUrl, visemes } = await generateVoice({
         voiceId: sp.voiceId!,
         text: sp.text,
+        model: sp.voiceModel,
       });
-      map[visemeKey(sp.voiceId!, sp.text)] = { audioUrl, visemes };
+      map[visemeKey(sp.voiceId!, sp.text, sp.voiceModel)] = { audioUrl, visemes };
     } catch (err) {
       console.error(`    ✗ Failed:`, err);
     }

@@ -145,7 +145,18 @@ Node 18+ (22 tested).
 
 ## Asset catalogue
 
-### Animations (17, on the base Lips-Pack rig)
+### Animations (56 total, from two FBXs)
+
+The animation library is **56 clips**, merged from two FBXs at startup:
+
+- **17 clips** from the base Lips-Pack `Character_Talking.fbx`
+  (talking-head reactions + walk).
+- **39 clips** harvested from Characters-Pack `Character_All.fbx`
+  (cafe vocabulary: sit, eat, drink, serve, carry). Verified to use
+  the same 53 bones as the base rig — they animate our actors
+  directly via `mixer.clipAction(clipObj)`.
+
+**Talking-head set (Lips-Pack):**
 
 | Clip | Duration | Use |
 | --- | --- | --- |
@@ -164,14 +175,44 @@ Node 18+ (22 tested).
 | `React_ThumbsUp` | 0.73s | Quick thumbs up |
 | `React_WaveHello` | 1.47s | Wave hello |
 | `React_WaveBye` | 2.20s | Wave goodbye |
-| `React_Handshake` | 1.90s | Two-character handshake — underused |
-| `React_Jump_Joy` | 0.87s | High-impact joy beat — save for finale |
+| `React_Handshake` | 1.90s | Two-character handshake |
+| `React_Jump_Joy` | 0.87s | High-impact joy beat |
 
-**Note:** No sit/eat/drink/run/dance animations on this rig. The
-Characters-Pack `Character_All.fbx` has 43 cafe animations
-(`Sofa_*`, `Floor_*`, `TallChair_*`, `Tray_*`, `Bar_*`) but we don't
-load that FBX. To get those clips we'd have to swap the base rig
-entirely; not worth it for most skits.
+**Cafe-vocab set (Characters-Pack) — abridged categories:**
+
+- **Long idles**: `Idle_Wardrobe` (6.8s), `Wait_Shifting` (5.0s),
+  `Wait_Choosy` (6.0s).
+- **Sofa**: `Sofa_Sit`, `Sofa_Sit_RootMotion`, `Sofa_Served`,
+  `Sofa_Cup_Pickup`, `Sofa_Cup_Drink_Idle`, `Sofa_Cup_Drink_Loop`,
+  `Sofa_Glass_Pickup`, `Sofa_Glass_Drink_Loop`, `Sofa_Food_Pickup`,
+  `Sofa_Food_Eat_Loop`.
+- **Floor cushion**: `Floor_Sit`, `Floor_Sit_RootMotion`,
+  `Floor_GetUp`, `Floor_GetUp_RootMotion`, `Floor_Cup_Pickup`,
+  `Floor_Cup_Drink_Loop`, `Floor_Glass_Pickup`, `Floor_Glass_Drink_Loop`,
+  `Floor_Food_Pickup`, `Floor_Food_Eat_Loop`.
+- **TallChair (counter stool)**: `TallChair_Sit`,
+  `TallChair_Sit_RootMotion`, `TallChair_Wait_Idle1`,
+  `TallChair_Wait_Idle2`, `TallChair_Cup_Pickup`,
+  `TallChair_Cup_Drink_Loop`, `TallChair_Glass_Drink _Loop` (sic —
+  note the space before `_Loop`), `TallChair_Food_Pickup`,
+  `TallChair_Food_Eat_Loop`, `TallChair_Served_Happy`.
+- **Tray service**: `Tray_Pickup`, `Tray_Walk`, `Tray_Serve_Tall`,
+  `Tray_Serve_Short`.
+- **Bar**: `Bar_Plated_Pickup`, `Bar_Walk_Plated`.
+
+See `ClipName` in `src/skits/assets.ts` for the full type-safe list.
+The `_RootMotion` variants include translation tracks — characters
+move through space. The non-RootMotion versions keep the actor in
+place; use those unless you specifically want to fake locomotion via
+the animation.
+
+**Caveat — no actual environment**: cafe clips assume furniture
+(`Sofa_Sit` puts the actor in a sitting pose at a height that expects
+a sofa to be there). The pose lands on screen, but the actor is
+floating in mid-air unless you compose a background that suggests
+furniture. For pure visual gags ("character zoned out on an invisible
+couch"), this is fine. For literal cafe scenes, you'd need to render
+prop meshes separately or composite background art.
 
 ### Face sprites
 
@@ -344,15 +385,21 @@ Keep the renderer pure and data-driven — resist adding skit-specific branches.
 
 ## Voiced skits + lip-sync
 
-1. Author the skit normally with `voiceId` on each `speak` action (no
-   `visemes` field needed).
-2. Run `npm run generate-voices` — calls ElevenLabs `/with-timestamps`,
+1. Author the skit's dialogue (typically via the `skit-script-editor`
+   subagent — see Brainstorm subagents section).
+2. **PAUSE: get explicit user approval of every spoken line before
+   touching the voice generator.** ElevenLabs API charges per line and
+   the user almost always wants to revise something. Show the final
+   line table and ask "approve this script before generating voices?"
+   Do NOT proceed until they say yes.
+3. Write the skit data file with `voiceId` set on each `speak` action.
+4. Run `npm run generate-voices` — calls ElevenLabs `/with-timestamps`,
    writes `public/voices/{hash}.mp3` and `.visemes.json` for each line,
    and emits `src/skits/scripts/{skitName}.visemes.ts` exporting a
    `VisemeMap`.
-3. In `src/Root.tsx`, wrap the skit with `withVisemes(skit, visemes)` so
+5. In `src/Root.tsx`, wrap the skit with `withVisemes(skit, visemes)` so
    the renderer attaches viseme tracks at runtime.
-4. At render time, `Character3D` reads the active speak action's visemes
+6. At render time, `Character3D` reads the active speak action's visemes
    and swaps `Body_Mouth` per frame for lip-sync.
 
 ## Conventions

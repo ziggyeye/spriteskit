@@ -5,10 +5,15 @@ import { aiTakingMyJob } from './skits/scripts/aiTakingMyJob';
 import { aiTakingMyJobPt2 } from './skits/scripts/aiTakingMyJobPt2';
 import { lastSongRemembered } from './skits/scripts/lastSongRemembered';
 import { areYouOkay } from './skits/scripts/areYouOkay';
+import { tedTalk } from './skits/scripts/tedTalk';
+import { widowmakerCasting } from './skits/scripts/widowmakerCasting';
+import { widowmaker } from './skits/scripts/widowmaker';
+import { visemes as widowmakerVisemes } from './skits/scripts/widowmaker.visemes';
 import { visemes as lastSongVisemes } from './skits/scripts/lastSongRemembered.visemes';
 import { visemes as aiTakingMyJobVisemes } from './skits/scripts/aiTakingMyJob.visemes';
 import { visemes as aiTakingMyJobPt2Visemes } from './skits/scripts/aiTakingMyJobPt2.visemes';
 import { visemes as areYouOkayVisemes } from './skits/scripts/areYouOkay.visemes';
+import { visemes as tedTalkVisemes } from './skits/scripts/tedTalk.visemes';
 import { withVisemes } from './skits/withVisemes';
 import type { Skit } from './skits/types';
 
@@ -24,6 +29,9 @@ const skits: Skit[] = [
   withVisemes(aiTakingMyJobPt2, aiTakingMyJobPt2Visemes),
   withVisemes(lastSongRemembered, lastSongVisemes),
   withVisemes(areYouOkay, areYouOkayVisemes),
+  withVisemes(tedTalk, tedTalkVisemes),
+  widowmakerCasting,
+  withVisemes(widowmaker, widowmakerVisemes),
 ];
 
 export const RemotionRoot: React.FC = () => {

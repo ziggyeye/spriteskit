@@ -226,8 +226,10 @@ export const SkitComp: React.FC<{ skit: Skit }> = ({ skit }) => {
         {/* Speech bubbles. Hidden actors (e.g. narrator) suppress their
             bubble; their audio still plays via the Audio sequence above,
             and the skit author uses a parallel popupText for the
-            on-screen caption. */}
-        {activeSpeaks.map((sp, i) => {
+            on-screen caption. Skits can also opt out entirely via
+            `hideSpeechBubbles` and rely on lower-third popupText
+            captions (TED-talk style). */}
+        {!skit.hideSpeechBubbles && activeSpeaks.map((sp, i) => {
           const actor = skit.actors.find((a) => a.id === sp.actorId);
           const s = actorStates[sp.actorId];
           if (!actor || !s) return null;

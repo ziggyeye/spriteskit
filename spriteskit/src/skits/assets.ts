@@ -7,7 +7,22 @@
  * Source of truth: ran FBXLoader against the file and dumped names.
  */
 
+/**
+ * Animation clip names. Sourced from two FBXs:
+ *
+ * 1. Lips-Pack `Character_Talking.fbx` (the base rig) — 17 talking-head
+ *    clips: `Walk_Loop`, the `React_*` reaction set, `0TPose`.
+ * 2. Characters-Pack `Character_All.fbx` — 39 additional cafe-vocab
+ *    clips harvested at startup and merged into the rig's clip map
+ *    (same skeleton, verified by bone name). `Walk_Loop`/`0TPose`/
+ *    `Stand_Pose`/`Wait_Pose` are dropped from the Characters-Pack
+ *    harvest to avoid duplicates with the base rig.
+ *
+ * Note `'TallChair_Glass_Drink _Loop'` has a space before `_Loop` —
+ * that's the actual exported name in the FBX. Don't "fix" it.
+ */
 export type ClipName =
+  // --- Lips-Pack base rig (17) ---
   | 'Walk_Loop'
   | 'React_Stand_Discussion_1'
   | 'React_Stand_Discussion_2'
@@ -24,7 +39,53 @@ export type ClipName =
   | 'React_CrossedArms_Thinking'
   | 'React_Handshake'
   | 'React_Jump_Joy'
-  | '0TPose';
+  | '0TPose'
+  // --- Characters-Pack cafe vocabulary (39) ---
+  // Long ambient idles
+  | 'Idle_Wardrobe'
+  | 'Wait_Shifting'
+  | 'Wait_Choosy'
+  // Sofa (sit on a couch, drink, eat, pick up items)
+  | 'Sofa_Sit'
+  | 'Sofa_Sit_RootMotion'
+  | 'Sofa_Served'
+  | 'Sofa_Cup_Pickup'
+  | 'Sofa_Cup_Drink_Idle'
+  | 'Sofa_Cup_Drink_Loop'
+  | 'Sofa_Glass_Pickup'
+  | 'Sofa_Glass_Drink_Loop'
+  | 'Sofa_Food_Pickup'
+  | 'Sofa_Food_Eat_Loop'
+  // Floor (sit on the floor / a cushion)
+  | 'Floor_Sit'
+  | 'Floor_Sit_RootMotion'
+  | 'Floor_GetUp'
+  | 'Floor_GetUp_RootMotion'
+  | 'Floor_Cup_Pickup'
+  | 'Floor_Cup_Drink_Loop'
+  | 'Floor_Glass_Pickup'
+  | 'Floor_Glass_Drink_Loop'
+  | 'Floor_Food_Pickup'
+  | 'Floor_Food_Eat_Loop'
+  // TallChair (counter stool)
+  | 'TallChair_Sit'
+  | 'TallChair_Sit_RootMotion'
+  | 'TallChair_Wait_Idle1'
+  | 'TallChair_Wait_Idle2'
+  | 'TallChair_Cup_Pickup'
+  | 'TallChair_Cup_Drink_Loop'
+  | 'TallChair_Glass_Drink _Loop' // sic — space in name
+  | 'TallChair_Food_Pickup'
+  | 'TallChair_Food_Eat_Loop'
+  | 'TallChair_Served_Happy'
+  // Tray service (waitstaff)
+  | 'Tray_Pickup'
+  | 'Tray_Walk'
+  | 'Tray_Serve_Tall'
+  | 'Tray_Serve_Short'
+  // Bar (handling plated food at a counter)
+  | 'Bar_Plated_Pickup'
+  | 'Bar_Walk_Plated';
 
 /**
  * Outfit slots. The base rig is `Character_Talking.fbx` (Lips-Pack)
@@ -201,6 +262,20 @@ export type Outfit = {
   shoesColor?: ClothingColor;
   /** Apron clothing swatch. Defaults to Whipped_Cream. Only relevant if `apron` is set. */
   apronColor?: ClothingColor;
+  /**
+   * Accessory colour as a flat CSS-style hex string (e.g. `'#1a1a1a'`
+   * for black glasses, `'#cc0000'` for red headphones). Accessories
+   * render as solid-coloured meshes — the asset pack's atlas-UV
+   * trick looks broken outside the cafe context, so we override with
+   * a clean colour. Defaults to dark charcoal `#1a1a1a`.
+   */
+  accessoryColor?: string;
+  /**
+   * Held item colour as a flat CSS-style hex string. Defaults to a
+   * warm brown `#8a5a3b` (works for trays, cups, plates). For
+   * specific items like coffee or cupcakes, override per actor.
+   */
+  heldColor?: string;
 };
 
 /**

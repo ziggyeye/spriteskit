@@ -169,17 +169,27 @@ The asset pack's intended sequences:
 
 ## Voiced skits + lip-sync
 
-ElevenLabs voice generation + viseme-driven mouth animation:
+ElevenLabs voice generation + ARPAbet-phoneme-driven mouth animation:
 
 1. Author speak actions with `voiceId: VOICE_IDS.<name>` (see [voiceIds.ts](src/services/voiceIds.ts)).
-2. Run `npm run generate-voices` — calls ElevenLabs `/v1/text-to-speech/.../with-timestamps`,
-   writes MP3s + per-line viseme tracks to `public/voices/`, and emits a
+2. **Get user approval on the script before generating voices** — each
+   API call costs credits, and unapproved scripts get rewritten. The
+   `skit-script-editor` agent ends its output with an explicit
+   approval-gate prompt for this reason.
+3. Run `npm run generate-voices` — calls ElevenLabs `/v1/text-to-speech/.../with-timestamps`,
+   then for each spoken word looks up phonemes via the CMU Pronouncing
+   Dictionary and maps each phoneme to a detailed mouth frame via the
+   `ARPABET_TO_VISEME` table (derived from `Lips_Legend.png`). Writes
+   MP3s + per-line viseme tracks to `public/voices/`, and emits a
    `{skitName}.visemes.ts` module per skit.
-3. In `Root.tsx`, wrap the skit with `withVisemes(skit, visemes)` — auto-attaches
+4. In `Root.tsx`, wrap the skit with `withVisemes(skit, visemes)` — auto-attaches
    `audioUrl` + viseme tracks to each speak action.
-4. The renderer drives `Body_Mouth` material textures per frame to lip-sync.
+5. The renderer drives `Body_Mouth` material textures per frame to lip-sync.
 
 Hidden actors (e.g. `narrator`) get audio but no speech bubble — useful for VO.
+
+**Silent skits** (no `speak` actions) ship un-wrapped in `Root.tsx` —
+no `.visemes.ts` file is generated for them.
 
 ## Humming / ambient SFX
 
@@ -238,10 +248,18 @@ convergent phase chains shot-designer then script-editor.
 
 - **AiTakingMyJob** (30s) — Dave panics about AI replacing coworkers; Alex reveals *she's* the AI.
 - **AiTakingMyJobPt2** (30s) — Dave seeks reassurance; everyone's an AI except him.
-- **LastSongRemembered** (75s) — earnest cinematic piece. An elder hums a tune,
-  a child learns it, the elder dissolves, the child carries the song forward.
-  Showcases: voiced narration, looped humming SFX, dissolve via `fade`, camera
-  push-ins and Dutch tilts, per-actor colour overrides, eye-sprite sequences.
+- **LastSongRemembered** (75s) — earnest cinematic piece. Elder teaches a child
+  a song, then dissolves. Showcases voiced narration, looped humming SFX,
+  `fade` action, dolly-back camera, per-actor colour overrides.
+- **AreYouOkay** (45s) — deadpan comedy. Couple in tense silence; reveal he's
+  thinking about whether a hot dog is a sandwich. Showcases varied 3D camera
+  angles (high isometric, low, OTS, Dutch ECU, worm's-eye), rapid eye-sprite
+  emotion flicker, `loop: false` to hold animation end-poses without resets.
+- **TedTalk** (75s) — single-character meta-monologue about the engine.
+  Showcases solo-blocking, gestural variety using the full animation library.
+- **WidowmakerCasting** (2s) — single-frame still rendered as a casting card.
+  Pattern for low-effort "still" outputs (use `npx remotion still` instead of
+  `render`).
 
 Render any composition by id:
 

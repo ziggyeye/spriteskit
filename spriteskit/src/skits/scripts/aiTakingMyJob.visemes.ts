@@ -2,379 +2,161 @@
 import type { VisemeMap } from '../withVisemes';
 
 export const visemes: VisemeMap = {
-  "IKne3meq5aSn9XLyUdCD::BRO!! AI is taking EVERYONE’S job!!": {
-    "audioUrl": "/voices/HkAwN8FJ_SiOueajGLxcObMV.mp3",
+  "IKne3meq5aSn9XLyUdCD::eleven_flash_v2_5::BRO!! AI is taking EVERYONE’S job!!": {
+    "audioUrl": "/voices/BojL_G0r6HfhiCqtDotLzq9g.mp3",
     "visemes": [
       {
         "startSec": 0,
         "viseme": "Lips_20"
       },
       {
-        "startSec": 0.10833333333333334,
+        "startSec": 0.12,
         "viseme": "Lips_12"
       },
       {
-        "startSec": 0.21666666666666667,
+        "startSec": 0.24,
         "viseme": "Lips_08"
-      },
-      {
-        "startSec": 0.325,
-        "viseme": "Lips_00"
-      },
-      {
-        "startSec": 0.58,
-        "viseme": "Lips_02"
-      },
-      {
-        "startSec": 1.022,
-        "viseme": "Lips_00"
-      },
-      {
-        "startSec": 1.138,
-        "viseme": "Lips_06"
-      },
-      {
-        "startSec": 1.2134999999999998,
-        "viseme": "Lips_14"
-      },
-      {
-        "startSec": 1.289,
-        "viseme": "Lips_00"
-      },
-      {
-        "startSec": 1.359,
-        "viseme": "Lips_18"
-      },
-      {
-        "startSec": 1.4194,
-        "viseme": "Lips_00"
-      },
-      {
-        "startSec": 1.4798,
-        "viseme": "Lips_19"
-      },
-      {
-        "startSec": 1.5402,
-        "viseme": "Lips_06"
-      },
-      {
-        "startSec": 1.6006,
-        "viseme": "Lips_19"
-      },
-      {
-        "startSec": 1.661,
-        "viseme": "Lips_00"
-      },
-      {
-        "startSec": 1.753,
-        "viseme": "Lips_04"
-      },
-      {
-        "startSec": 1.8111428571428572,
-        "viseme": "Lips_17"
-      },
-      {
-        "startSec": 1.8692857142857142,
-        "viseme": "Lips_12"
-      },
-      {
-        "startSec": 1.9274285714285715,
-        "viseme": "Lips_06"
-      },
-      {
-        "startSec": 1.9855714285714285,
-        "viseme": "Lips_07"
-      },
-      {
-        "startSec": 2.0437142857142856,
-        "viseme": "Lips_01"
-      },
-      {
-        "startSec": 2.101857142857143,
-        "viseme": "Lips_18"
-      },
-      {
-        "startSec": 2.16,
-        "viseme": "Lips_00"
-      },
-      {
-        "startSec": 2.195,
-        "viseme": "Lips_04"
-      },
-      {
-        "startSec": 2.2065,
-        "viseme": "Lips_14"
-      },
-      {
-        "startSec": 2.218,
-        "viseme": "Lips_00"
-      },
-      {
-        "startSec": 2.253,
-        "viseme": "Lips_15"
-      },
-      {
-        "startSec": 2.353666666666667,
-        "viseme": "Lips_02"
-      },
-      {
-        "startSec": 2.4543333333333335,
-        "viseme": "Lips_20"
-      },
-      {
-        "startSec": 2.555,
-        "viseme": "Lips_00"
-      }
-    ]
-  },
-  "cgSgspJ2msm6clMCkdW9::wait what happened?": {
-    "audioUrl": "/voices/tP3WnSYrjgTVraoiXmcDlUaU.mp3",
-    "visemes": [
-      {
-        "startSec": 0,
-        "viseme": "Lips_07"
-      },
-      {
-        "startSec": 0.06566666666666666,
-        "viseme": "Lips_00"
-      },
-      {
-        "startSec": 0.13133333333333333,
-        "viseme": "Lips_18"
-      },
-      {
-        "startSec": 0.197,
-        "viseme": "Lips_00"
-      },
-      {
-        "startSec": 0.232,
-        "viseme": "Lips_07"
-      },
-      {
-        "startSec": 0.27466666666666667,
-        "viseme": "Lips_01"
-      },
-      {
-        "startSec": 0.31733333333333336,
-        "viseme": "Lips_18"
       },
       {
         "startSec": 0.36,
         "viseme": "Lips_00"
       },
       {
-        "startSec": 0.395,
-        "viseme": "Lips_11"
+        "startSec": 0.708,
+        "viseme": "Lips_02"
       },
       {
-        "startSec": 0.46066666666666667,
-        "viseme": "Lips_01"
-      },
-      {
-        "startSec": 0.5263333333333333,
-        "viseme": "Lips_20"
-      },
-      {
-        "startSec": 0.5920000000000001,
-        "viseme": "Lips_01"
-      },
-      {
-        "startSec": 0.6576666666666666,
-        "viseme": "Lips_18"
-      },
-      {
-        "startSec": 0.789,
-        "viseme": "Lips_00"
-      }
-    ]
-  },
-  "IKne3meq5aSn9XLyUdCD::They replaced Steve.\nAND Karen.\nAND the intern!!": {
-    "audioUrl": "/voices/bz1CXXCEqRfIWs1GPdFYJQOF.mp3",
-    "visemes": [
-      {
-        "startSec": 0,
-        "viseme": "Lips_16"
-      },
-      {
-        "startSec": 0.0815,
+        "startSec": 1.207,
         "viseme": "Lips_00"
       },
       {
-        "startSec": 0.221,
-        "viseme": "Lips_12"
-      },
-      {
-        "startSec": 0.2757142857142857,
+        "startSec": 1.323,
         "viseme": "Lips_06"
       },
       {
-        "startSec": 0.3304285714285714,
-        "viseme": "Lips_20"
-      },
-      {
-        "startSec": 0.3851428571428571,
-        "viseme": "Lips_13"
-      },
-      {
-        "startSec": 0.43985714285714284,
-        "viseme": "Lips_00"
-      },
-      {
-        "startSec": 0.49457142857142855,
+        "startSec": 1.3984999999999999,
         "viseme": "Lips_14"
       },
       {
-        "startSec": 0.5492857142857143,
-        "viseme": "Lips_18"
-      },
-      {
-        "startSec": 0.604,
+        "startSec": 1.474,
         "viseme": "Lips_00"
       },
       {
-        "startSec": 0.673,
-        "viseme": "Lips_14"
-      },
-      {
-        "startSec": 0.7805,
+        "startSec": 1.532,
         "viseme": "Lips_18"
       },
       {
-        "startSec": 0.888,
-        "viseme": "Lips_06"
-      },
-      {
-        "startSec": 0.9955,
-        "viseme": "Lips_17"
-      },
-      {
-        "startSec": 1.103,
+        "startSec": 1.5924,
         "viseme": "Lips_00"
       },
       {
-        "startSec": 1.393,
-        "viseme": "Lips_01"
-      },
-      {
-        "startSec": 1.4666666666666668,
-        "viseme": "Lips_18"
-      },
-      {
-        "startSec": 1.614,
-        "viseme": "Lips_00"
-      },
-      {
-        "startSec": 1.684,
+        "startSec": 1.6528,
         "viseme": "Lips_19"
       },
       {
-        "startSec": 1.756,
+        "startSec": 1.7132,
+        "viseme": "Lips_06"
+      },
+      {
+        "startSec": 1.7736,
+        "viseme": "Lips_19"
+      },
+      {
+        "startSec": 1.834,
+        "viseme": "Lips_00"
+      },
+      {
+        "startSec": 1.892,
         "viseme": "Lips_04"
       },
       {
-        "startSec": 1.828,
+        "startSec": 1.9434285714285713,
+        "viseme": "Lips_17"
+      },
+      {
+        "startSec": 1.9948571428571427,
         "viseme": "Lips_12"
       },
       {
-        "startSec": 1.9,
+        "startSec": 2.0462857142857143,
+        "viseme": "Lips_06"
+      },
+      {
+        "startSec": 2.0977142857142854,
+        "viseme": "Lips_07"
+      },
+      {
+        "startSec": 2.149142857142857,
         "viseme": "Lips_01"
       },
       {
-        "startSec": 1.972,
+        "startSec": 2.200571428571428,
         "viseme": "Lips_18"
       },
       {
-        "startSec": 2.044,
+        "startSec": 2.252,
         "viseme": "Lips_00"
       },
       {
         "startSec": 2.287,
-        "viseme": "Lips_01"
+        "viseme": "Lips_04"
       },
       {
-        "startSec": 2.372333333333333,
-        "viseme": "Lips_18"
+        "startSec": 2.2984999999999998,
+        "viseme": "Lips_14"
       },
       {
-        "startSec": 2.543,
+        "startSec": 2.31,
         "viseme": "Lips_00"
       },
       {
-        "startSec": 2.589,
-        "viseme": "Lips_16"
+        "startSec": 2.345,
+        "viseme": "Lips_15"
       },
       {
-        "startSec": 2.6414999999999997,
-        "viseme": "Lips_01"
+        "startSec": 2.445666666666667,
+        "viseme": "Lips_02"
       },
       {
-        "startSec": 2.694,
-        "viseme": "Lips_00"
+        "startSec": 2.546333333333333,
+        "viseme": "Lips_20"
       },
       {
-        "startSec": 2.763,
-        "viseme": "Lips_06"
-      },
-      {
-        "startSec": 2.8676,
-        "viseme": "Lips_18"
-      },
-      {
-        "startSec": 3.0768,
-        "viseme": "Lips_05"
-      },
-      {
-        "startSec": 3.1814,
-        "viseme": "Lips_18"
-      },
-      {
-        "startSec": 3.286,
+        "startSec": 2.647,
         "viseme": "Lips_00"
       }
     ]
   },
-  "IKne3meq5aSn9XLyUdCD::i think i’m next bro": {
-    "audioUrl": "/voices/_xD9pK_q5VjGldozfP39P9lH.mp3",
+  "cgSgspJ2msm6clMCkdW9::eleven_flash_v2_5::wait what happened?": {
+    "audioUrl": "/voices/_5gSMuMdwg2cDLIoHJNUmkmA.mp3",
     "visemes": [
       {
         "startSec": 0,
-        "viseme": "Lips_02"
+        "viseme": "Lips_07"
       },
       {
-        "startSec": 0.046,
+        "startSec": 0.08133333333333333,
         "viseme": "Lips_00"
       },
       {
-        "startSec": 0.104,
+        "startSec": 0.16266666666666665,
         "viseme": "Lips_18"
       },
       {
-        "startSec": 0.14175,
-        "viseme": "Lips_06"
-      },
-      {
-        "startSec": 0.1795,
-        "viseme": "Lips_19"
-      },
-      {
-        "startSec": 0.255,
+        "startSec": 0.244,
         "viseme": "Lips_00"
       },
       {
-        "startSec": 0.302,
-        "viseme": "Lips_02"
+        "startSec": 0.29,
+        "viseme": "Lips_07"
       },
       {
-        "startSec": 0.325,
-        "viseme": "Lips_00"
+        "startSec": 0.32866666666666666,
+        "viseme": "Lips_01"
       },
       {
-        "startSec": 0.372,
-        "viseme": "Lips_04"
-      },
-      {
-        "startSec": 0.389,
-        "viseme": "Lips_20"
+        "startSec": 0.36733333333333335,
+        "viseme": "Lips_18"
       },
       {
         "startSec": 0.406,
@@ -382,79 +164,297 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.453,
-        "viseme": "Lips_18"
+        "viseme": "Lips_11"
       },
       {
-        "startSec": 0.4902,
-        "viseme": "Lips_04"
+        "startSec": 0.5148333333333334,
+        "viseme": "Lips_01"
       },
       {
-        "startSec": 0.5274,
-        "viseme": "Lips_19"
-      },
-      {
-        "startSec": 0.5646,
-        "viseme": "Lips_14"
-      },
-      {
-        "startSec": 0.6018,
-        "viseme": "Lips_18"
-      },
-      {
-        "startSec": 0.639,
-        "viseme": "Lips_00"
-      },
-      {
-        "startSec": 0.662,
+        "startSec": 0.5766666666666667,
         "viseme": "Lips_20"
       },
       {
-        "startSec": 0.782,
-        "viseme": "Lips_12"
+        "startSec": 0.6385,
+        "viseme": "Lips_01"
       },
       {
-        "startSec": 0.902,
-        "viseme": "Lips_08"
+        "startSec": 0.7003333333333333,
+        "viseme": "Lips_18"
       },
       {
-        "startSec": 1.022,
+        "startSec": 0.824,
         "viseme": "Lips_00"
       }
     ]
   },
-  "cgSgspJ2msm6clMCkdW9::...yeah. about that.": {
-    "audioUrl": "/voices/Qlq7Y_G_TtLfY26TzhFyHXE0.mp3",
+  "IKne3meq5aSn9XLyUdCD::eleven_flash_v2_5::They replaced Steve.\nAND Karen.\nAND the intern!!": {
+    "audioUrl": "/voices/ELCdflfFwdAYt72i4aNpIKwx.mp3",
+    "visemes": [
+      {
+        "startSec": 0,
+        "viseme": "Lips_16"
+      },
+      {
+        "startSec": 0.0755,
+        "viseme": "Lips_00"
+      },
+      {
+        "startSec": 0.221,
+        "viseme": "Lips_12"
+      },
+      {
+        "startSec": 0.2722857142857143,
+        "viseme": "Lips_06"
+      },
+      {
+        "startSec": 0.32357142857142857,
+        "viseme": "Lips_20"
+      },
+      {
+        "startSec": 0.3748571428571429,
+        "viseme": "Lips_13"
+      },
+      {
+        "startSec": 0.42614285714285716,
+        "viseme": "Lips_00"
+      },
+      {
+        "startSec": 0.4774285714285714,
+        "viseme": "Lips_14"
+      },
+      {
+        "startSec": 0.5287142857142857,
+        "viseme": "Lips_18"
+      },
+      {
+        "startSec": 0.58,
+        "viseme": "Lips_00"
+      },
+      {
+        "startSec": 0.662,
+        "viseme": "Lips_14"
+      },
+      {
+        "startSec": 0.784,
+        "viseme": "Lips_18"
+      },
+      {
+        "startSec": 0.9059999999999999,
+        "viseme": "Lips_06"
+      },
+      {
+        "startSec": 1.028,
+        "viseme": "Lips_17"
+      },
+      {
+        "startSec": 1.15,
+        "viseme": "Lips_00"
+      },
+      {
+        "startSec": 1.301,
+        "viseme": "Lips_01"
+      },
+      {
+        "startSec": 1.382,
+        "viseme": "Lips_18"
+      },
+      {
+        "startSec": 1.544,
+        "viseme": "Lips_00"
+      },
+      {
+        "startSec": 1.626,
+        "viseme": "Lips_19"
+      },
+      {
+        "startSec": 1.7002,
+        "viseme": "Lips_04"
+      },
+      {
+        "startSec": 1.7744,
+        "viseme": "Lips_12"
+      },
+      {
+        "startSec": 1.8486,
+        "viseme": "Lips_01"
+      },
+      {
+        "startSec": 1.9228,
+        "viseme": "Lips_18"
+      },
+      {
+        "startSec": 1.997,
+        "viseme": "Lips_00"
+      },
+      {
+        "startSec": 2.137,
+        "viseme": "Lips_01"
+      },
+      {
+        "startSec": 2.249,
+        "viseme": "Lips_18"
+      },
+      {
+        "startSec": 2.473,
+        "viseme": "Lips_00"
+      },
+      {
+        "startSec": 2.589,
+        "viseme": "Lips_16"
+      },
+      {
+        "startSec": 2.6704999999999997,
+        "viseme": "Lips_01"
+      },
+      {
+        "startSec": 2.752,
+        "viseme": "Lips_00"
+      },
+      {
+        "startSec": 2.833,
+        "viseme": "Lips_06"
+      },
+      {
+        "startSec": 2.9328000000000003,
+        "viseme": "Lips_18"
+      },
+      {
+        "startSec": 3.1324,
+        "viseme": "Lips_05"
+      },
+      {
+        "startSec": 3.2321999999999997,
+        "viseme": "Lips_18"
+      },
+      {
+        "startSec": 3.332,
+        "viseme": "Lips_00"
+      }
+    ]
+  },
+  "IKne3meq5aSn9XLyUdCD::eleven_flash_v2_5::i think i’m next bro": {
+    "audioUrl": "/voices/fJoAgakLiilpHH_UHO9kz6RJ.mp3",
+    "visemes": [
+      {
+        "startSec": 0,
+        "viseme": "Lips_02"
+      },
+      {
+        "startSec": 0.058,
+        "viseme": "Lips_00"
+      },
+      {
+        "startSec": 0.116,
+        "viseme": "Lips_18"
+      },
+      {
+        "startSec": 0.15375,
+        "viseme": "Lips_06"
+      },
+      {
+        "startSec": 0.1915,
+        "viseme": "Lips_19"
+      },
+      {
+        "startSec": 0.267,
+        "viseme": "Lips_00"
+      },
+      {
+        "startSec": 0.302,
+        "viseme": "Lips_02"
+      },
+      {
+        "startSec": 0.337,
+        "viseme": "Lips_00"
+      },
+      {
+        "startSec": 0.383,
+        "viseme": "Lips_04"
+      },
+      {
+        "startSec": 0.40049999999999997,
+        "viseme": "Lips_20"
+      },
+      {
+        "startSec": 0.418,
+        "viseme": "Lips_00"
+      },
+      {
+        "startSec": 0.476,
+        "viseme": "Lips_18"
+      },
+      {
+        "startSec": 0.5178,
+        "viseme": "Lips_04"
+      },
+      {
+        "startSec": 0.5596,
+        "viseme": "Lips_19"
+      },
+      {
+        "startSec": 0.6014,
+        "viseme": "Lips_14"
+      },
+      {
+        "startSec": 0.6432,
+        "viseme": "Lips_18"
+      },
+      {
+        "startSec": 0.685,
+        "viseme": "Lips_00"
+      },
+      {
+        "startSec": 0.72,
+        "viseme": "Lips_20"
+      },
+      {
+        "startSec": 0.8516666666666667,
+        "viseme": "Lips_12"
+      },
+      {
+        "startSec": 0.9833333333333334,
+        "viseme": "Lips_08"
+      },
+      {
+        "startSec": 1.115,
+        "viseme": "Lips_00"
+      }
+    ]
+  },
+  "cgSgspJ2msm6clMCkdW9::eleven_flash_v2_5::...yeah. about that.": {
+    "audioUrl": "/voices/Ry2SJKaxj_TDk9iWL9wnjond.mp3",
     "visemes": [
       {
         "startSec": 0,
         "viseme": "Lips_00"
       },
       {
-        "startSec": 0.267,
+        "startSec": 0.174,
         "viseme": "Lips_06"
       },
       {
-        "startSec": 0.4005,
+        "startSec": 0.3135,
         "viseme": "Lips_01"
       },
       {
-        "startSec": 0.534,
+        "startSec": 0.453,
         "viseme": "Lips_00"
       },
       {
-        "startSec": 0.627,
+        "startSec": 0.639,
         "viseme": "Lips_01"
       },
       {
-        "startSec": 0.688,
+        "startSec": 0.6970000000000001,
         "viseme": "Lips_20"
       },
       {
-        "startSec": 0.749,
+        "startSec": 0.755,
         "viseme": "Lips_09"
       },
       {
-        "startSec": 0.81,
+        "startSec": 0.813,
         "viseme": "Lips_18"
       },
       {
@@ -466,28 +466,28 @@ export const visemes: VisemeMap = {
         "viseme": "Lips_16"
       },
       {
-        "startSec": 0.9756666666666667,
+        "startSec": 0.9793333333333333,
         "viseme": "Lips_01"
       },
       {
-        "startSec": 1.0453333333333332,
+        "startSec": 1.0526666666666666,
         "viseme": "Lips_18"
       },
       {
-        "startSec": 1.115,
+        "startSec": 1.126,
         "viseme": "Lips_00"
       }
     ]
   },
-  "cgSgspJ2msm6clMCkdW9::I’ve BEEN the AI\nthis whole time, Dave.": {
-    "audioUrl": "/voices/6dSfGBRhYj8M4dR1OkhiiVqL.mp3",
+  "cgSgspJ2msm6clMCkdW9::eleven_flash_v2_5::I’ve BEEN the AI\nthis whole time, Dave.": {
+    "audioUrl": "/voices/YTkSxXuQRJu_Pg9BSbQ1Os_i.mp3",
     "visemes": [
       {
         "startSec": 0,
         "viseme": "Lips_02"
       },
       {
-        "startSec": 0.07,
+        "startSec": 0.058,
         "viseme": "Lips_00"
       },
       {
@@ -507,15 +507,15 @@ export const visemes: VisemeMap = {
         "viseme": "Lips_20"
       },
       {
-        "startSec": 0.2553333333333333,
+        "startSec": 0.25166666666666665,
         "viseme": "Lips_06"
       },
       {
-        "startSec": 0.30166666666666664,
+        "startSec": 0.29433333333333334,
         "viseme": "Lips_18"
       },
       {
-        "startSec": 0.348,
+        "startSec": 0.337,
         "viseme": "Lips_00"
       },
       {
@@ -531,7 +531,7 @@ export const visemes: VisemeMap = {
         "viseme": "Lips_00"
       },
       {
-        "startSec": 0.499,
+        "startSec": 0.488,
         "viseme": "Lips_02"
       },
       {
@@ -559,15 +559,15 @@ export const visemes: VisemeMap = {
         "viseme": "Lips_11"
       },
       {
-        "startSec": 1.0603333333333333,
+        "startSec": 1.064,
         "viseme": "Lips_08"
       },
       {
-        "startSec": 1.1106666666666667,
+        "startSec": 1.1179999999999999,
         "viseme": "Lips_13"
       },
       {
-        "startSec": 1.161,
+        "startSec": 1.172,
         "viseme": "Lips_00"
       },
       {
@@ -575,31 +575,31 @@ export const visemes: VisemeMap = {
         "viseme": "Lips_18"
       },
       {
-        "startSec": 1.2656666666666667,
+        "startSec": 1.2693333333333332,
         "viseme": "Lips_02"
       },
       {
-        "startSec": 1.3353333333333333,
+        "startSec": 1.3426666666666667,
         "viseme": "Lips_20"
       },
       {
-        "startSec": 1.405,
+        "startSec": 1.416,
         "viseme": "Lips_00"
       },
       {
-        "startSec": 1.451,
+        "startSec": 1.463,
         "viseme": "Lips_18"
       },
       {
-        "startSec": 1.575,
+        "startSec": 1.579,
         "viseme": "Lips_00"
       },
       {
-        "startSec": 1.699,
+        "startSec": 1.695,
         "viseme": "Lips_17"
       },
       {
-        "startSec": 1.823,
+        "startSec": 1.811,
         "viseme": "Lips_00"
       }
     ]

@@ -27,9 +27,13 @@ export type VisemeEntry = {
 
 export type VisemeMap = Record<string, VisemeEntry>;
 
-/** Build the map key for a speak line. Safe for Node and browser. */
-export function visemeKey(voiceId: string, text: string): string {
-  return `${voiceId}::${text}`;
+/**
+ * Build the map key for a speak line. Includes the model so flash and
+ * v3 generations of the same line don't collide in the cache map.
+ * Safe for Node and browser.
+ */
+export function visemeKey(voiceId: string, text: string, model?: string): string {
+  return `${voiceId}::${model ?? 'eleven_flash_v2_5'}::${text}`;
 }
 
 export function withVisemes(skit: Skit, map: VisemeMap): Skit {
@@ -37,7 +41,11 @@ export function withVisemes(skit: Skit, map: VisemeMap): Skit {
     ...skit,
     timeline: skit.timeline.map((a) => {
       if (a.type !== 'speak' || !a.voiceId) return a;
-      const entry = map[visemeKey(a.voiceId, a.text)];
+      // Try the model-aware key first; fall back to the legacy
+      // model-less key so already-generated .visemes.ts files keep working.
+      const entry =
+        map[visemeKey(a.voiceId, a.text, a.voiceModel)] ??
+        map[`${a.voiceId}::${a.text}`];
       if (!entry) return a;
       // entry.audioUrl is stored as a root-relative path like
       // '/voices/{hash}.mp3'. Remotion's <Audio> renderer needs a

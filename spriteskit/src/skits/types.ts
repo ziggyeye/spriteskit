@@ -108,6 +108,15 @@ export type Action =
       tint?: string;
       /** ElevenLabs voice ID for TTS (e.g., 'IZSifFFbIucDmqV5ClJK' for Charlie) */
       voiceId?: string;
+      /**
+       * ElevenLabs TTS model. Default `eleven_flash_v2_5` — fast, with
+       * character-level alignment for lip-sync. Use `eleven_v3` for
+       * expressive audio tags like `[whispers]`, `[sighs]`, `[laughs]`
+       * — but v3 alignment is uncertain so v3 lines skip viseme
+       * generation. Use v3 ONLY on off-screen narrator/VO lines whose
+       * speaker has no visible mouth.
+       */
+      voiceModel?: 'eleven_flash_v2_5' | 'eleven_v3';
       /** Path to pre-recorded audio or generated voice file (overrides voiceId if provided) */
       audioUrl?: string;
       /**
@@ -244,4 +253,10 @@ export type Skit = {
   musicVolume?: number;
   /** Initial camera state. If omitted, a sensible TikTok-portrait default is used. */
   defaultCamera?: CameraState;
+  /**
+   * Suppress the per-speak speech bubble. Useful for skits that prefer
+   * lower-third captions (TED-talk style) via parallel popupText
+   * actions. Default false. Audio still plays.
+   */
+  hideSpeechBubbles?: boolean;
 };
