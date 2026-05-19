@@ -8,7 +8,7 @@
  * `Skit` object, then register it in Root.tsx. No rendering code required.
  */
 
-import type { ClipName, EyeSprite, Outfit, VisemeFrame } from './assets';
+import type { ClipName, EyeSprite, Outfit, Viseme, VisemeFrame } from './assets';
 
 /**
  * Legacy 2D sprite IDs. Kept for backwards-compat with the old 2D engine —
@@ -222,6 +222,25 @@ export type Action =
       /** Override the actor's eye sprite for a time window. */
       eyes: EyeSprite;
       type: 'eyes';
+      actorId: string;
+      startSec: number;
+      endSec: number;
+    }
+  | {
+      /**
+       * Override the actor's REST mouth sprite for a time window.
+       * The skit-level default rest-mouth is `Lips_20` (neutral flat).
+       * This action overrides it during the window — useful for
+       * emotion mouths like `Lips_23_Angry`, `Lips_24_Thinking`,
+       * `Lips_26_Smiley`, or for forcing a smile during a silent beat.
+       *
+       * IMPORTANT: this only sets the rest-mouth used when the actor
+       * is SILENT. While a `speak` action is active for the actor,
+       * the speak's generated viseme track drives the mouth per-frame
+       * for lip-sync, and this override is ignored.
+       */
+      mouth: Viseme;
+      type: 'mouth';
       actorId: string;
       startSec: number;
       endSec: number;

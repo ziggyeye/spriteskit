@@ -604,9 +604,20 @@ function computeActorStates(
     // sec, blendT = 1 (no blend needed). Otherwise, find when the
     // change happened so we know how far through the blend we are.
     let blendT = 1;
+    // The prev clip's time at the transition instant — the pose we
+    // want to FADE OUT during the blend. For one-shots that have
+    // already passed their duration at the transition, this clamps
+    // at duration so we hold the end pose rather than advancing
+    // past it (which would fall back to Idle_Wardrobe).
+    let prevTimeAtTransition = past.clipTime;
     if (clipChanged) {
       const transitionAtSec = findTransitionInstant(skit, actor, prevSec, sec);
       blendT = Math.min(1, Math.max(0, (sec - transitionAtSec) / TRANSITION_WINDOW_SEC));
+      // Re-resolve prev at the transition instant minus epsilon, so
+      // prevTimeAtTransition reflects exactly where prev was at the
+      // moment the transition happened (not 0.18s before).
+      const prevAtTransition = resolveActorClip(skit, actor, Math.max(0, transitionAtSec - 0.001));
+      prevTimeAtTransition = prevAtTransition.clipTime;
     }
 
     const state: ActorRuntimeState = {
@@ -623,10 +634,18 @@ function computeActorStates(
       clipTime: now.clipTime,
       clipLoop: now.clipLoop,
       prevClip: past.clip,
-      prevClipTime: past.clipTime + TRANSITION_WINDOW_SEC, // advance prev's time as the blend progresses
+      // Use the prev clip's time AT THE TRANSITION INSTANT — frozen
+      // there throughout the fade. Don't advance forward during the
+      // blend; if we did, one-shots would exceed their duration and
+      // fall back to Idle_Wardrobe, breaking the cross-fade.
+      prevClipTime: prevTimeAtTransition,
       prevClipLoop: past.clipLoop,
       blendT,
-      viseme: 'Lips_00',
+      // Lips_20 is the true neutral rest-mouth — a flat, slightly-
+      // wavy closed line. NOT Lips_00, which is a smile (sometimes
+      // appropriate, but only when the character should look happy).
+      // Authors can override per-actor / per-window via `mouth` actions.
+      viseme: 'Lips_20',
       eyes: 'Eye_0_Default',
     };
 
@@ -694,6 +713,20 @@ function computeActorStates(
       if (action.type === 'eyes' && action.actorId === actor.id) {
         if (sec >= action.startSec && sec < action.endSec) {
           state.eyes = action.eyes;
+        }
+      }
+
+      // `mouth` action sets the REST mouth (used during silence).
+      // Applied BEFORE `speak` so that during dialogue windows, the
+      // speak's per-frame viseme track overrides this rest value.
+      // For ordering safety: timeline iterates in author order, and
+      // `speak` is processed after `mouth`. If author writes `mouth`
+      // AFTER `speak` in the timeline array (unusual), the mouth
+      // override would clobber the lip-sync — flag that in the agent
+      // brief, but it's an authoring error not an engine bug.
+      if (action.type === 'mouth' && action.actorId === actor.id) {
+        if (sec >= action.startSec && sec < action.endSec) {
+          state.viseme = action.mouth;
         }
       }
 

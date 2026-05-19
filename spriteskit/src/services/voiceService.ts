@@ -51,7 +51,11 @@ export type GenerateVoiceResult = {
   visemes: VisemeFrame[];
 };
 
-const REST_VISEME: Viseme = 'Lips_00';
+// Lips_20 is the true neutral closed-mouth rest pose (a flat line).
+// Was Lips_00 (a smile) — that made every gap-between-words flash a
+// grin, which is wrong for almost every line. Lips_20 is the correct
+// "mouth closed, no expression" rest state.
+const REST_VISEME: Viseme = 'Lips_20';
 
 export async function generateVoice(config: VoiceConfig): Promise<GenerateVoiceResult> {
   const apiKey = process.env.ELEVENLABS_API_KEY || process.env.ELEVEN_LABS_API_KEY;

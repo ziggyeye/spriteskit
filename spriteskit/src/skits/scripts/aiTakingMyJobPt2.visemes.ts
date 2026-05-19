@@ -19,7 +19,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.418,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.592,
@@ -43,7 +43,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.871,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.917,
@@ -55,7 +55,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.998,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 1.033,
@@ -63,7 +63,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 1.057,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 1.115,
@@ -87,7 +87,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 1.591,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       }
     ]
   },
@@ -104,7 +104,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.163,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.209,
@@ -116,7 +116,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.372,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.441,
@@ -124,7 +124,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.5416666666666666,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.6423333333333333,
@@ -132,7 +132,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.743,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       }
     ]
   },
@@ -145,7 +145,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.07733333333333334,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.15466666666666667,
@@ -153,7 +153,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.232,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.36,
@@ -165,7 +165,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.488,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.557,
@@ -177,7 +177,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.766,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       }
     ]
   },
@@ -222,7 +222,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.418,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.453,
@@ -234,7 +234,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.534,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.569,
@@ -246,7 +246,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.615,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.673,
@@ -266,7 +266,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 1.149,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 1.787,
@@ -286,7 +286,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 2.078,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 2.147,
@@ -298,7 +298,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 2.24,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 2.275,
@@ -310,7 +310,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 2.333,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 2.391,
@@ -318,7 +318,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 2.751,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       }
     ]
   },
@@ -335,7 +335,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.174,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.221,
@@ -363,7 +363,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.522,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.557,
@@ -379,7 +379,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.72,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.778,
@@ -395,7 +395,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 1.103,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       }
     ]
   },
@@ -420,7 +420,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.255,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.313,
@@ -432,7 +432,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.43,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.499,
@@ -440,7 +440,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.561,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.623,
@@ -448,7 +448,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.685,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.778,
@@ -468,7 +468,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 1.022,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 1.08,
@@ -480,7 +480,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 1.265,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       }
     ]
   }

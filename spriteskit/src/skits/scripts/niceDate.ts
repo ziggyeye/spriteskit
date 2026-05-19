@@ -63,60 +63,66 @@ const MIA_STEP_BACK_X = 1020;
 // snap-back so nothing competes with the punchline.
 // Camera Y values tuned for FLOOR=1920 (feet at world Y=0, head ~1.45).
 // Character positions: Liam at world x=-0.7, Mia at world x=+0.7 (or
-// +1.1 after the step-back). Bar table at world (0, 1.1, 0).
-// Cameras are pulled back further than the first pass — wider framings
-// read better at TikTok scale.
+// +1.1 after the step-back). Cocktail table at world (0, 0.55, 0).
+// Cameras are pulled back further than v1; lookAt Y values centered
+// around chest (0.95-1.15) to avoid cropping heads even when pushing
+// in tight. FOVs bumped up where shots were chopping.
 const cameraTimeline: Action[] = [
-  // 0:00 OPEN — wide two-shot establishing. Pulled back to ~6m to fit
-  // both characters comfortably plus the bar table.
+  // 0:00 OPEN — wide two-shot establishing. ~6m back to fit both
+  // characters + the table comfortably.
   { type: 'camera', to: { position: [0, 1.15, 6.0], lookAt: [0, 0.95, 0], fov: 36 }, startSec: 0.0, endSec: 0.05 },
 
   // 0:04 HARD CUT — over-the-shoulder from behind Mia, framing Liam.
-  { type: 'camera', to: { position: [1.8, 1.3, 2.6], lookAt: [-0.7, 1.2, 0], fov: 32 }, startSec: 4.0, endSec: 4.05 },
+  // STAYS on Liam through BOTH his setup line AND the question
+  // ("Hey. Can I ask you something?" → "Does your dad actually have
+  // cancer?"). Her "Mhm?" interjection happens off-screen — keeping
+  // the camera on the speaker is the right convention for dialogue.
+  { type: 'camera', to: { position: [1.6, 1.25, 3.2], lookAt: [-0.7, 1.05, 0], fov: 34 }, startSec: 4.0, endSec: 4.05 },
 
-  // 0:09 HARD CUT — reverse OTS, now framing Mia for the question.
-  { type: 'camera', to: { position: [-1.8, 1.3, 2.6], lookAt: [0.7, 1.2, 0], fov: 32 }, startSec: 9.0, endSec: 9.05 },
+  // 0:13.0 HARD CUT — to Mia just as Liam's question lands (his line
+  // ends at 12.8). She gets ~0.5s of silent reaction in this medium
+  // before the hold beat extends from 13.5. Wide two-shot showing
+  // both characters so the step-back at 15.5 reads cleanly.
+  { type: 'camera', to: { position: [0, 1.2, 5.0], lookAt: [0.2, 0.95, 0], fov: 34 }, startSec: 13.0, endSec: 13.05 },
 
-  // 0:13.5 SLOW PUSH on Mia (3s tween). THE dread-pull. From medium OTS
-  // into a 3/4 ECU. Pulled further back than v1 so her full upper-body
-  // is in frame.
-  { type: 'camera', to: { position: [-0.4, 1.35, 2.8], lookAt: [0.7, 1.2, 0], fov: 32 }, startSec: 13.5, endSec: 16.5 },
+  // 0:16.0 SLOW PUSH on Mia — HORROR-MOVIE ZOOM. Starts at medium
+  // distance (3.6m), pushes in over 3.5s to closer-medium (2.6m).
+  // Crosses her unblinking-stare freeze (16.0-17.5) AND the first
+  // "No." (17.5-18.4). FOV stays at 32 — generous headroom prevents
+  // cropping during the push.
+  { type: 'camera', to: { position: [0.2, 1.25, 2.6], lookAt: [1.1, 1.05, 0], fov: 32 }, startSec: 16.0, endSec: 19.5 },
 
-  // 0:16.5 HARD CUT — wide two-shot. Both visible as the barrage opens.
-  { type: 'camera', to: { position: [0, 1.2, 5.0], lookAt: [0.2, 0.95, 0], fov: 34 }, startSec: 16.5, endSec: 16.55 },
+  // 0:21.0 HARD CUT — slight angle change so it doesn't feel like
+  // an endless static zoom. Same tightness, mirror vantage.
+  { type: 'camera', to: { position: [-0.2, 1.25, 2.6], lookAt: [1.1, 1.05, 0], fov: 32 }, startSec: 21.0, endSec: 21.05 },
 
-  // 0:18.5 HARD CUT — medium on Mia. She's at world x≈+1.1.
-  { type: 'camera', to: { position: [-0.2, 1.35, 3.4], lookAt: [1.1, 1.25, 0], fov: 30 }, startSec: 18.5, endSec: 18.55 },
+  // 0:25.0 SLOW PUSH on Mia for the SCREAM peak. Tightens from
+  // medium to a closer 3/4 over 2.5s — but stays loose enough to
+  // keep her head fully in frame (lookAt Y=1.0, FOV=30).
+  { type: 'camera', to: { position: [0.3, 1.3, 2.1], lookAt: [1.1, 1.0, 0], fov: 30 }, startSec: 25.0, endSec: 27.5 },
 
-  // 0:22.0 HARD CUT — tighter on Mia for "Why are you asking me this?"
-  // — slight angle change so it doesn't feel like a static zoom.
-  { type: 'camera', to: { position: [0.0, 1.4, 2.6], lookAt: [1.1, 1.3, 0], fov: 28 }, startSec: 22.0, endSec: 22.05 },
+  // 0:27.6 HARD CUT — quick reaction on Liam (world x=-0.7).
+  // Wider framing — Liam's reaction beat shouldn't compete.
+  { type: 'camera', to: { position: [0.8, 1.25, 3.6], lookAt: [-0.7, 1.05, 0], fov: 32 }, startSec: 27.6, endSec: 27.65 },
 
-  // 0:24.0 HARD CUT — pushed in close on Mia for the SCREAM peak.
-  // Tightest of the barrage shots; her face fills the frame.
-  { type: 'camera', to: { position: [0.3, 1.4, 2.2], lookAt: [1.1, 1.3, 0], fov: 28 }, startSec: 24.0, endSec: 24.05 },
+  // 0:28.5 HARD CUT — back to Mia for the guilt-trip line + final low
+  // "No." Profile from the other side, fresh angle.
+  { type: 'camera', to: { position: [-0.4, 1.25, 3.0], lookAt: [1.1, 1.05, 0], fov: 32 }, startSec: 28.5, endSec: 28.55 },
 
-  // 0:26.5 HARD CUT — quick reaction on Liam (he's at world x=-0.7).
-  // Single short cut, half the previous Liam-shot duration.
-  { type: 'camera', to: { position: [1.0, 1.35, 3.4], lookAt: [-0.7, 1.25, 0], fov: 30 }, startSec: 26.5, endSec: 26.55 },
-
-  // 0:28.0 HARD CUT — back to Mia for "I thought we were having a nice
-  // night" + the final low "No." Profile from the other side.
-  { type: 'camera', to: { position: [-0.4, 1.35, 2.8], lookAt: [1.1, 1.3, 0], fov: 30 }, startSec: 28.0, endSec: 28.05 },
-
-  // 0:30 HARD CUT — LOW-ANGLE 3/4 on Mia (still at world x≈+1.1). She looms.
-  { type: 'camera', to: { position: [0.2, 0.6, 2.6], lookAt: [1.1, 1.25, 0], fov: 32 }, startSec: 30.0, endSec: 30.05 },
+  // 0:30 HARD CUT — LOW-ANGLE 3/4 on Mia (still at world x≈+1.1). She
+  // looms. Pulled back slightly + wider FOV so we don't crop her head.
+  { type: 'camera', to: { position: [0.2, 0.55, 3.0], lookAt: [1.1, 1.1, 0], fov: 34 }, startSec: 30.0, endSec: 30.05 },
 
   // 0:33.5 HARD CUT — high-angle iso down on the table aftermath.
   { type: 'camera', to: { position: [1.6, 3.0, 4.6], lookAt: [0, 0.5, 0], fov: 38 }, startSec: 33.5, endSec: 33.55 },
 
   // 0:36 HARD CUT — OTS from behind Mia onto Liam (her looming silhouette).
-  { type: 'camera', to: { position: [1.5, 1.3, 2.6], lookAt: [-0.7, 1.2, 0], fov: 32 }, startSec: 36.0, endSec: 36.05 },
+  // Pulled back to 3.2 + FOV 34 for full upper-body on Liam.
+  { type: 'camera', to: { position: [1.4, 1.25, 3.2], lookAt: [-0.7, 1.05, 0], fov: 34 }, startSec: 36.0, endSec: 36.05 },
 
-  // 0:42 HARD CUT — medium on Mia for the punchline. NOTE: by 42s the
-  // step-back happened, so she's at world x=+1.1. Frame her face but
-  // include just a hint of the bar table for context.
-  { type: 'camera', to: { position: [0.4, 1.3, 3.0], lookAt: [1.1, 1.25, 0], fov: 30 }, startSec: 42.0, endSec: 42.05 },
+  // 0:42 HARD CUT — medium on Mia for the punchline. She's at world
+  // x=+1.1. Loose enough to show face + hint of table.
+  { type: 'camera', to: { position: [0.4, 1.25, 3.4], lookAt: [1.1, 1.05, 0], fov: 32 }, startSec: 42.0, endSec: 42.05 },
 ];
 
 // ----- Mia's step-back -----
@@ -126,8 +132,13 @@ const cameraTimeline: Action[] = [
 // her chair back / rose to her feet." The walk auto-plays Walk_Loop
 // during the move, then she settles into the no-barrage from her new
 // position. Camera ECUs are tuned for this new offset.
+// Faster walk (0.5s instead of 0.8s) so the freeze-stare beat that
+// follows has room to breathe within the existing 16.5s "start of
+// barrage" anchor. After the walk ends at 16.0, Mia STARES at Liam
+// without animation or blinks for 1.5 seconds — that frozen
+// unblinking moment is the horror beat.
 const stepBack: Action[] = [
-  { type: 'walk', actorId: 'mia', to: { x: MIA_STEP_BACK_X, y: FLOOR }, startSec: 15.5, endSec: 16.3, facing: 'down-left' },
+  { type: 'walk', actorId: 'mia', to: { x: MIA_STEP_BACK_X, y: FLOOR }, startSec: 15.5, endSec: 16.0, facing: 'down-left' },
 ];
 
 // ----- Dialogue -----
@@ -145,25 +156,26 @@ const dialogue: Action[] = [
   // (13.5-16.5: silent hold — no speak action)
 
   // Lines 4-12: THE BARRAGE — escalating with interjected protest
-  // lines (the deflection-and-redirect pattern). Original lines in
-  // the same emotional shape as the source film's beat without
+  // lines (the deflection-and-redirect pattern). Starts at 17.5
+  // (after the 1.5s freeze-stare beat at 16.0-17.5). Original lines
+  // in the same emotional shape as the source film's beat without
   // reproducing any specific dialogue. Pattern is:
   //   no -> double-no -> "don't do this." -> rapid no-burst ->
   //   "why are you asking me this?" -> peak SCREAM -> guilt-trip ->
   //   definitive low no
-  { type: 'speak', actorId: 'mia', text: 'No.', voiceId: VOICE_IDS.jessica, startSec: 16.5, endSec: 17.4, volume: 2.0 },
-  { type: 'speak', actorId: 'mia', text: 'No no!', voiceId: VOICE_IDS.jessica, startSec: 17.6, endSec: 18.5, volume: 2.0 },
+  { type: 'speak', actorId: 'mia', text: 'No.', voiceId: VOICE_IDS.jessica, startSec: 17.5, endSec: 18.4, volume: 2.0 },
+  { type: 'speak', actorId: 'mia', text: 'No no!', voiceId: VOICE_IDS.jessica, startSec: 18.6, endSec: 19.5, volume: 2.0 },
   // Protest 1: deflection
-  { type: 'speak', actorId: 'mia', text: "Don't do this.", voiceId: VOICE_IDS.jessica, startSec: 18.7, endSec: 20.0, volume: 2.0 },
-  { type: 'speak', actorId: 'mia', text: 'No no no no no!', voiceId: VOICE_IDS.jessica, startSec: 20.2, endSec: 22.0, volume: 2.0 },
+  { type: 'speak', actorId: 'mia', text: "Don't do this.", voiceId: VOICE_IDS.jessica, startSec: 19.7, endSec: 21.0, volume: 2.0 },
+  { type: 'speak', actorId: 'mia', text: 'No no no no no!', voiceId: VOICE_IDS.jessica, startSec: 21.2, endSec: 23.0, volume: 2.0 },
   // Protest 2: appeal
-  { type: 'speak', actorId: 'mia', text: 'Why are you asking me this?', voiceId: VOICE_IDS.jessica, startSec: 22.2, endSec: 24.0, volume: 2.0 },
+  { type: 'speak', actorId: 'mia', text: 'Why are you asking me this?', voiceId: VOICE_IDS.jessica, startSec: 23.2, endSec: 25.0, volume: 2.0 },
   // PEAK scream
-  { type: 'speak', actorId: 'mia', text: 'NO NO NO NO NO!', voiceId: VOICE_IDS.jessica, startSec: 24.2, endSec: 26.5, volume: 2.0 },
+  { type: 'speak', actorId: 'mia', text: 'NO NO NO NO NO!', voiceId: VOICE_IDS.jessica, startSec: 25.2, endSec: 27.4, volume: 2.0 },
   // Protest 3: guilt-trip
-  { type: 'speak', actorId: 'mia', text: 'I thought we were having a nice night.', voiceId: VOICE_IDS.jessica, startSec: 26.7, endSec: 28.8, volume: 2.0 },
+  { type: 'speak', actorId: 'mia', text: 'I thought we were having a nice night.', voiceId: VOICE_IDS.jessica, startSec: 27.6, endSec: 29.0, volume: 2.0 },
   // Definitive low final no
-  { type: 'speak', actorId: 'mia', text: 'No.', voiceId: VOICE_IDS.jessica, startSec: 29.0, endSec: 30.0, volume: 2.0 },
+  { type: 'speak', actorId: 'mia', text: 'No.', voiceId: VOICE_IDS.jessica, startSec: 29.2, endSec: 30.0, volume: 2.0 },
 
   // (30-36: silent tantrum + "ENOUGH." popupText)
 
@@ -188,12 +200,44 @@ const eyes: Action[] = [
   { type: 'eyes', actorId: 'liam', eyes: 'Eye_Flat', startSec: 13.5, endSec: 42.0 },
   { type: 'eyes', actorId: 'liam', eyes: 'Eye_Flat', startSec: 42.0, endSec: 45.5 }, // he has NOT recovered
 
-  // Mia
+  // Mia — eye states ride the dramatic curve:
+  // 0-15.2: Default (warm, normal date energy)
+  // 15.2-17.5: Eye_Flat — through the hold + step-back + freeze-stare.
+  //   Flat eyes WHILE the smile is still on her face IS the horror beat.
+  // 17.5-19.5: Eye_Frustrated — building as the no's start
+  // 19.5-42: Eye_Angry — sustained meltdown, held through capitulation
+  // 42-45.5: Eye_0_Default — INSTANT SNAP-BACK, the visual punchline
   { type: 'eyes', actorId: 'mia', eyes: 'Eye_0_Default', startSec: 0, endSec: 15.2 },
-  { type: 'eyes', actorId: 'mia', eyes: 'Eye_Flat', startSec: 15.2, endSec: 18.0 }, // mid-hold change — smile body, flat eyes
-  { type: 'eyes', actorId: 'mia', eyes: 'Eye_Frustrated', startSec: 18.0, endSec: 22.0 }, // building
-  { type: 'eyes', actorId: 'mia', eyes: 'Eye_Angry', startSec: 22.0, endSec: 42.0 }, // peak + held
-  { type: 'eyes', actorId: 'mia', eyes: 'Eye_0_Default', startSec: 42.0, endSec: 45.5 }, // INSTANT SNAP-BACK
+  { type: 'eyes', actorId: 'mia', eyes: 'Eye_Flat', startSec: 15.2, endSec: 17.5 },
+  { type: 'eyes', actorId: 'mia', eyes: 'Eye_Frustrated', startSec: 17.5, endSec: 19.5 },
+  { type: 'eyes', actorId: 'mia', eyes: 'Eye_Angry', startSec: 19.5, endSec: 42.0 },
+  { type: 'eyes', actorId: 'mia', eyes: 'Eye_0_Default', startSec: 42.0, endSec: 45.5 },
+];
+
+// ----- Mouth choreography -----
+// The rest-mouth state used when characters are silent. While a speak
+// action is active, its viseme track drives the mouth for lip-sync —
+// these `mouth` overrides only apply during silent windows + between
+// dialogue gaps. The default rest is Lips_20 (neutral flat); we
+// override it here to give each character their emotional mouth.
+//
+// Liam: stays Lips_20 (neutral) the entire skit — he's not smiling,
+// he's not making faces, he's just reacting. Default works for him.
+//
+// Mia: warm Smiley during the date phase, smile HELD through the
+// freeze beat (smile + flat eyes = the horror), Angry during the
+// meltdown so gap-frames between no's stay angry, Upset for the
+// post-tantrum stone, then INSTANT SNAP BACK to Smiley for the punch.
+const mouths: Action[] = [
+  // Mia mouth arc — see Eye_Default → Smiley → Angry → Upset → Smiley
+  { type: 'mouth', actorId: 'mia', mouth: 'Lips_26_Smiley', startSec: 0, endSec: 17.5 },
+  { type: 'mouth', actorId: 'mia', mouth: 'Lips_23_Angry', startSec: 17.5, endSec: 30.0 },
+  { type: 'mouth', actorId: 'mia', mouth: 'Lips_21_Upset', startSec: 30.0, endSec: 42.0 },
+  { type: 'mouth', actorId: 'mia', mouth: 'Lips_26_Smiley', startSec: 42.0, endSec: 45.5 },
+
+  // Liam — slight confused mouth during the meltdown, otherwise default neutral.
+  { type: 'mouth', actorId: 'liam', mouth: 'Lips_29_Confused', startSec: 16.5, endSec: 30.0 },
+  { type: 'mouth', actorId: 'liam', mouth: 'Lips_21_Upset', startSec: 30.0, endSec: 42.0 },
 ];
 
 // ----- Tint cue -----
@@ -294,34 +338,34 @@ const animations: Action[] = [
   // (One of only TWO explicit Idle_Wardrobe schedulings — character
   // is supposed to be disarmingly still and warm here.)
   { type: 'animate', actorId: 'mia', clip: 'Idle_Wardrobe', startSec: 9, endSec: 13.5, loop: false },
-  // Beat 3 (13.5-15.5): THE HOLD. Wait_Pose freeze.
+  // Beat 3 (13.5-15.5): THE HOLD. Wait_Pose freeze, smile still on.
   { type: 'animate', actorId: 'mia', clip: 'Wait_Pose', startSec: 13.5, endSec: 15.5, loop: false },
-  // 15.5-16.3 = walk (overrides). 16.3-16.5 bridge with Wait_Pose.
-  { type: 'animate', actorId: 'mia', clip: 'Wait_Pose', startSec: 16.3, endSec: 16.5, loop: false },
-  // Beat 4a (16.5-18.5): "No." x2. React_Stand_NO 1.67s; chain
-  // CrossArms_ShakeNO for the remaining 0.33s.
-  { type: 'animate', actorId: 'mia', clip: 'React_Stand_NO', startSec: 16.5, endSec: 18.17, loop: false },
-  { type: 'animate', actorId: 'mia', clip: 'React_CrossArms_ShakeNO', startSec: 18.17, endSec: 18.5, loop: false },
-  // Beat 4b (18.5-20.5): "Don't do this." Discussion_1 6.1s > 2s.
-  // First of TWO allowed Discussion uses.
-  { type: 'animate', actorId: 'mia', clip: 'React_Stand_Discussion_1', startSec: 18.5, endSec: 20.5, loop: false },
-  // Beat 4c (20.5-22.5): "No no no no no!" CrossArms_ShakeNO 1.47s,
-  // chain React_Stand_NO 1.67s (truncated to 0.53s).
-  { type: 'animate', actorId: 'mia', clip: 'React_CrossArms_ShakeNO', startSec: 20.5, endSec: 21.97, loop: false },
-  { type: 'animate', actorId: 'mia', clip: 'React_Stand_NO', startSec: 21.97, endSec: 22.5, loop: false },
-  // Beat 4d (22.5-24.5): "Why are you asking me this?" — Discussion_2
-  // 5.47s > 2s. Second and last Discussion use.
-  { type: 'animate', actorId: 'mia', clip: 'React_Stand_Discussion_2', startSec: 22.5, endSec: 24.5, loop: false },
-  // Beat 4e (24.5-27.0): NO NO NO PEAK. CrossArms_ShakeNO 1.47s, then
-  // chain React_Stand_NO for the remaining 1.03s (intense head shake).
-  { type: 'animate', actorId: 'mia', clip: 'React_CrossArms_ShakeNO', startSec: 24.5, endSec: 25.97, loop: false },
-  { type: 'animate', actorId: 'mia', clip: 'React_Stand_NO', startSec: 25.97, endSec: 27.0, loop: false },
-  // Beat 4f (27-29): "I thought we were having a nice night." — appeal.
-  // React_CrossArms_NodYES 1.2s, chain Wait_Pose for the remaining 0.8s.
-  { type: 'animate', actorId: 'mia', clip: 'React_CrossArms_NodYES', startSec: 27.0, endSec: 28.2, loop: false },
-  { type: 'animate', actorId: 'mia', clip: 'Wait_Pose', startSec: 28.2, endSec: 29.0, loop: false },
-  // Beat 4g (29-30): final low "No." — CrossArms 0.8s, end-pose holds.
-  { type: 'animate', actorId: 'mia', clip: 'React_CrossArms', startSec: 29.0, endSec: 30.0, loop: false },
+  // 15.5-16.0 = walk (overrides). After it ends, MIA FREEZES from
+  // 16.0-17.5 — Wait_Pose held without animation, blinks excluded
+  // from this window, just an unblinking stare at Liam. THIS is the
+  // moment the smile drops and the horror reads.
+  { type: 'animate', actorId: 'mia', clip: 'Wait_Pose', startSec: 16.0, endSec: 17.5, loop: false },
+  // Beat 4a (17.5-18.7): first "No." React_Stand_NO 1.67s nearly fills.
+  { type: 'animate', actorId: 'mia', clip: 'React_Stand_NO', startSec: 17.5, endSec: 18.6, loop: false },
+  // Beat 4b (18.7-19.9): "No no!" — CrossArms_ShakeNO 1.47s.
+  { type: 'animate', actorId: 'mia', clip: 'React_CrossArms_ShakeNO', startSec: 18.7, endSec: 19.9, loop: false },
+  // Beat 4c (19.9-21.4): "Don't do this." — Discussion_1 (1st of 2 allowed)
+  { type: 'animate', actorId: 'mia', clip: 'React_Stand_Discussion_1', startSec: 19.9, endSec: 21.4, loop: false },
+  // Beat 4d (21.4-23.4): "No no no no no!" head-shake.
+  { type: 'animate', actorId: 'mia', clip: 'React_CrossArms_ShakeNO', startSec: 21.4, endSec: 22.87, loop: false },
+  { type: 'animate', actorId: 'mia', clip: 'React_Stand_NO', startSec: 22.87, endSec: 23.4, loop: false },
+  // Beat 4e (23.4-25.4): "Why are you asking me this?" Discussion_2
+  // (2nd and last allowed Discussion use).
+  { type: 'animate', actorId: 'mia', clip: 'React_Stand_Discussion_2', startSec: 23.4, endSec: 25.4, loop: false },
+  // Beat 4f (25.4-27.9): NO NO NO PEAK. ShakeNO + chain Stand_NO.
+  { type: 'animate', actorId: 'mia', clip: 'React_CrossArms_ShakeNO', startSec: 25.4, endSec: 26.87, loop: false },
+  { type: 'animate', actorId: 'mia', clip: 'React_Stand_NO', startSec: 26.87, endSec: 27.9, loop: false },
+  // Beat 4g (27.9-29.2): "I thought we were having a nice night."
+  // appeal posture — NodYES 1.2s, then bridge Wait_Pose.
+  { type: 'animate', actorId: 'mia', clip: 'React_CrossArms_NodYES', startSec: 27.9, endSec: 29.1, loop: false },
+  { type: 'animate', actorId: 'mia', clip: 'Wait_Pose', startSec: 29.1, endSec: 29.2, loop: false },
+  // Beat 4h (29.2-30): final low "No." CrossArms 0.8s.
+  { type: 'animate', actorId: 'mia', clip: 'React_CrossArms', startSec: 29.2, endSec: 30.0, loop: false },
   // Beat 5 (30-32): tantrum slam — React_Stand_Thinking 1.33s, chain
   // Wait_Pose for the freeze.
   { type: 'animate', actorId: 'mia', clip: 'React_Stand_Thinking', startSec: 30.0, endSec: 31.33, loop: false },
@@ -409,6 +453,9 @@ export const niceDate: Skit = {
   timeline: [
     ...cameraTimeline,
     ...stepBack,
+    // mouths BEFORE dialogue so speak actions' per-frame visemes
+    // override the rest-mouth during talking windows.
+    ...mouths,
     ...dialogue,
     ...eyes,
     ...blinks,

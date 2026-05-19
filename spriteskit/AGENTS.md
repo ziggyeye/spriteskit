@@ -328,14 +328,54 @@ Key properties:
 - **Tunable** — `minGapSec`, `maxGapSec`, `frameSec`, `doubleBlinkProb`.
   Crank up frequency for anxious characters; reduce for stoic ones.
 - **Mouth simplified** (`public/sprites/lips_simple/`) — 20 total:
-  - Visemes: `Lips_s00_Default` (closed), `s01_sh-ch`, `s02_a-i`,
+  - Visemes: `Lips_s00_Default` (smile), `s01_sh-ch`, `s02_a-i`,
     `s03_ah-i`, `s04_th`, `s05_e-k-r`, `s06_s-z`, `s07_m-b-p`, `s08_f-v`,
     `s09_L`, `s10_oh`, `s11_o-u-w`.
   - Emotions: `s12_Upset`, `s13_Sad`, `s14_Angry`, `s15_Thinking`,
     `s16_Cheeky`, `s17_Cute`, `s18_Surprised`, `s19_Confused`.
 - **Mouth detailed** (`public/sprites/lips/`) — 30 total (`Lips_00`–
-  `Lips_29`), same idea but finer-grained. Use only if simplified is too
-  coarse.
+  `Lips_29`), same idea but finer-grained. Use this set in the
+  detailed pipeline; the rest mouth is `Lips_20` (true neutral flat),
+  NOT `Lips_00` (which is a smile).
+
+**REST mouth defaults to `Lips_20` (neutral flat), NOT a smile.** The
+old default was `Lips_00` (a smile) which made every character grin
+during silences, between words, and at the start of every skit. That
+was a bug — fixed in [Skit.tsx](src/skits/Skit.tsx) and
+[voiceService.ts](src/services/voiceService.ts). When characters
+should look happy, schedule the smile explicitly via a `mouth` action.
+
+**Schedule emotion mouths with the `mouth` action.** It mirrors the
+`eyes` action:
+
+```ts
+{ type: 'mouth', actorId: 'mia', mouth: 'Lips_23_Angry', startSec: 17.5, endSec: 30.0 }
+```
+
+The mouth action sets the REST mouth used when the actor is silent.
+While a `speak` action is firing for that actor, the speak's
+generated viseme track drives the mouth per-frame for lip-sync, and
+the mouth override is ignored (this is what you want — the override
+only fills the gaps between words and silent windows).
+
+**Schedule order matters**: put mouth actions in the timeline array
+BEFORE speak actions. The Skit.tsx resolver iterates in author
+order; if speak comes first, the mouth override later would clobber
+lip-sync frames. The convention is:
+`[...cameras, ...stepBack, ...mouths, ...dialogue, ...eyes, ...]`.
+
+**Emotion mouth catalogue** (detailed set — preferred):
+
+- `Lips_20` — neutral flat (the default)
+- `Lips_21_Upset`, `Lips_22_Sad`, `Lips_23_Angry`, `Lips_24_Thinking`,
+  `Lips_25_Cheeky`, `Lips_26_Smiley`, `Lips_27_Cute`,
+  `Lips_28_Suprized` (sic), `Lips_29_Confused`
+
+Use these for character beats just like you do eye sprites. A
+"warm character on a date" gets `Lips_26_Smiley`; an angry meltdown
+gets `Lips_23_Angry`; a defeated capitulation gets `Lips_21_Upset`.
+The mouth + eye combination per beat carries 90% of the emotion
+read on these chibi character models.
 
 ### Outfit mesh catalogue (all loaded via `loadParts()`)
 

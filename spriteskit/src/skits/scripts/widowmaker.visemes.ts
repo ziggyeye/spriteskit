@@ -19,7 +19,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.163,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.279,
@@ -35,7 +35,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.615,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.708,
@@ -47,7 +47,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.94,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       }
     ]
   },
@@ -60,7 +60,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.081,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.197,
@@ -80,7 +80,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.395,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.453,
@@ -100,7 +100,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.743,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.789,
@@ -112,7 +112,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.94,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       }
     ]
   },
@@ -133,7 +133,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.174,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.232,
@@ -149,7 +149,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.43,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.464,
@@ -165,7 +165,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.58,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.615,
@@ -177,7 +177,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.697,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.766,
@@ -193,7 +193,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.928,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.986,
@@ -217,7 +217,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 1.3,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 1.37,
@@ -229,7 +229,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 1.474,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 1.532,
@@ -241,7 +241,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 1.73,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       }
     ]
   },
@@ -266,7 +266,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.267,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.337,
@@ -286,7 +286,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.639,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       }
     ]
   },
@@ -319,7 +319,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.372,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.418,
@@ -347,7 +347,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.848,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 1.045,
@@ -359,7 +359,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 1.172,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 1.23,
@@ -371,7 +371,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 1.335,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 1.416,
@@ -395,7 +395,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 1.672,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 1.73,
@@ -407,7 +407,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 1.869,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       }
     ]
   },
@@ -428,7 +428,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.209,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.255,
@@ -440,7 +440,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.406,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.453,
@@ -460,7 +460,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.906,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.987,
@@ -484,7 +484,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 1.474,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       }
     ]
   },
@@ -505,7 +505,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.232,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.267,
@@ -517,7 +517,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.546,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 1.591,
@@ -537,7 +537,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 2.055,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 2.496,
@@ -557,7 +557,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 2.961,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       }
     ]
   },
@@ -582,7 +582,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.244,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.29,
@@ -614,7 +614,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.72,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.813,
@@ -626,7 +626,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.987,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 1.045,
@@ -654,7 +654,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 1.393,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       }
     ]
   },
@@ -671,7 +671,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.174,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.244,
@@ -699,7 +699,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.546,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.604,
@@ -715,7 +715,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.755,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.824,
@@ -731,7 +731,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 1.196,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       }
     ]
   },
@@ -760,7 +760,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.139,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.209,
@@ -780,7 +780,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.813,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       }
     ]
   },
@@ -793,7 +793,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.081,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.151,
@@ -805,7 +805,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.348,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       }
     ]
   },
@@ -838,7 +838,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.348,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 0.395,
@@ -870,7 +870,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 0.894,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 1.243,
@@ -890,7 +890,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 1.498,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 1.533,
@@ -902,7 +902,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 1.614,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       },
       {
         "startSec": 1.672,
@@ -918,7 +918,7 @@ export const visemes: VisemeMap = {
       },
       {
         "startSec": 1.962,
-        "viseme": "Lips_00"
+        "viseme": "Lips_20"
       }
     ]
   },

@@ -487,6 +487,14 @@ export const Character3D: React.FC<Props> = ({
       rig.clips['Idle_Wardrobe'] ??
       rig.clips['React_Stand_Discussion_1'] ??
       rig.clips['0TPose'];
+    // A clip shorter than this is treated as a deliberate freeze
+    // pose (e.g. Wait_Pose 0.033s) — when it "ends" we hold its end
+    // pose forever instead of falling back to idle. Below this
+    // threshold there's no meaningful "animation" to play, only a
+    // sculpted single-frame pose, and the author scheduled it
+    // because they want stillness.
+    const FREEZE_POSE_MAX_DURATION = 0.2;
+
     const resolveClipAndTime = (
       name: ClipName,
       time: number,
@@ -499,7 +507,12 @@ export const Character3D: React.FC<Props> = ({
       }
       if (loop) return { clipObj: requested, localTime: time % requested.duration };
       if (time <= requested.duration) return { clipObj: requested, localTime: time };
-      // One-shot finished — fall back to idle, offset by time since end.
+      // One-shot finished. If the clip is a freeze pose, hold its end
+      // pose forever (no fallback). For longer one-shots (reactions,
+      // gestures), fall back to idle so the actor doesn't freeze.
+      if (requested.duration <= FREEZE_POSE_MAX_DURATION) {
+        return { clipObj: requested, localTime: requested.duration };
+      }
       if (idleClip) {
         return { clipObj: idleClip, localTime: (time - requested.duration) % idleClip.duration };
       }
@@ -508,26 +521,33 @@ export const Character3D: React.FC<Props> = ({
     };
 
     const current = resolveClipAndTime(clip, clipTime, clipLoop);
-    const prev = blendT < 1 ? resolveClipAndTime(prevClip, prevClipTime, prevClipLoop) : null;
+    // Only set up a prev action when (a) we're inside the transition window
+    // AND (b) the prev resolves to a DIFFERENT AnimationClip than current.
+    // If both resolve to the same clip (e.g. both fell back to Idle_Wardrobe),
+    // there's no blend to perform — and crucially we must NOT down-weight
+    // currentAction, otherwise PropertyMixer.apply blends bones toward
+    // bind-pose by (1 - blendT) and the character ghosts toward a T-pose.
+    const prevCandidate =
+      blendT < 1 ? resolveClipAndTime(prevClip, prevClipTime, prevClipLoop) : null;
+    const prev =
+      prevCandidate && prevCandidate.clipObj !== current?.clipObj ? prevCandidate : null;
+    const currentWeight = prev ? blendT : 1;
 
     if (current) {
       rig.mixer.stopAllAction();
 
-      // Current clip: weight = blendT (1 when no blend in progress).
+      // Current clip: weight = blendT (1 when no blend in progress, or
+      // when prev resolves to the same clip as current).
       const currentAction = rig.mixer.clipAction(current.clipObj);
       currentAction.setLoop(LoopRepeat, Infinity);
       currentAction.clampWhenFinished = true;
       currentAction.reset();
       currentAction.time = Math.max(0, current.localTime);
-      currentAction.setEffectiveWeight(blendT);
+      currentAction.setEffectiveWeight(currentWeight);
       currentAction.play();
 
-      // Prev clip (only when blending): weight = 1 - blendT.
-      // Skip if prev resolves to the SAME AnimationClip object as
-      // current — would just be the same pose at the same time, no
-      // visual difference, and re-using clipAction with two weights
-      // on the same clip can produce odd results.
-      if (prev && prev.clipObj !== current.clipObj) {
+      // Prev clip (only when blending and clips differ): weight = 1 - blendT.
+      if (prev) {
         const prevAction = rig.mixer.clipAction(prev.clipObj);
         prevAction.setLoop(LoopRepeat, Infinity);
         prevAction.clampWhenFinished = true;

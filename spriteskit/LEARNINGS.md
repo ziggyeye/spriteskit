@@ -91,6 +91,143 @@ See the parts attach block in [Character3D.tsx](src/components/Character3D.tsx).
 **The skeleton rebind is the key trick.** Without it, the part still
 references the source FBX's bones and animates with a phantom rig.
 
+### Freeze-pose clips need explicit clamp-end, not idle fallback
+
+The engine's one-shot-finished rule says "if a clip's duration is
+shorter than its scheduled window, fall back to Idle_Wardrobe for
+the remainder." This is right for reactions (React_ThumbsUp 0.73s
+in a 3s window: hold thumbs-up briefly, return to idle). It is
+WRONG for **freeze poses** like `Wait_Pose` and `Stand_Pose`, which
+are 0.033s single-keyframe poses that authors schedule specifically
+because they want the pose held forever for a deliberate stillness
+beat (a dread-hold, a post-impact freeze, a frozen smile).
+
+When we treated them like normal one-shots, scheduling `Wait_Pose`
+for a 1.5s "freeze stare" window actually produced: 33ms of pose
+→ 1.47s of Idle_Wardrobe. The character was idling, not frozen.
+And every freeze beat had a hidden cross-fade between the pose
+and the idle that read as a snap.
+
+Fix: in `resolveClipAndTime` in Character3D.tsx, if `requested.duration
+<= FREEZE_POSE_MAX_DURATION (0.2s)`, hold the end pose forever
+instead of falling back to idle. The threshold is set just above
+the cross-fade window (0.18s) so any clip too short to even
+register as an animation is treated as a sculpted pose.
+
+This also fixed a separate-looking bug: "animations not tweening"
+on Liam. The hard snaps were actually NodYES (1.2s) → Wait_Pose
+(0.033s) → Idle_Wardrobe cascades happening in <0.2s. With
+Wait_Pose now clamping, the cross-fade NodYES → Wait_Pose lands
+cleanly without the Idle_Wardrobe interruption.
+
+If we add more single-frame pose clips later, the threshold catches
+them automatically. If we ever schedule a longer freeze (say a 1s
+deliberate freeze made by chaining Wait_Pose for slot-fill),
+authors should know that Wait_Pose's end pose is what gets held —
+which is what they wanted anyway.
+
+### Prev clip time during cross-fade must be HELD at the transition instant, not advanced
+
+Subtle bug discovered debugging Liam's "pop" at sec=10.733 (one-shot
+`React_CrossedArms_Thinking` → `Wait_Choosy`). The math/state both
+looked correct, the prev clip object differed from current, weights
+were right, yet the body still snapped between frames 322 and 323.
+
+What was happening: in Skit.tsx, `prevClipTime` was being set to
+`past.clipTime + TRANSITION_WINDOW_SEC` — the idea was that during
+the 0.18s fade, prev keeps "playing" forward in time. But for
+one-shots that ended right at the transition (CrossedArms_Thinking
+in window 9-10.73 = duration 1.73s, window length 1.73s), advancing
+the time by another 0.18s pushed it PAST the clip's duration.
+
+Then in Character3D.tsx's `resolveClipAndTime`, the one-shot-finished
+fallback fired: clip duration > FREEZE_POSE_MAX_DURATION, so it fell
+back to `Idle_Wardrobe`. **The prev clip object was swapped from
+CrossedArms_Thinking → Idle_Wardrobe during the cross-fade.** Instead
+of blending the crossed-arms end pose into the new hip stance, we
+blended Idle_Wardrobe's start pose into the hip stance — both look
+like neutral standing, so visually it appeared as a hard cut.
+
+Fix in Skit.tsx (~line 606): when a transition is happening,
+re-resolve prev at the transition instant (minus a tiny epsilon),
+and use that resolved clipTime as `prevClipTime`. This holds prev
+at the exact pose it had at the moment the transition began, which
+is what the cross-fade should fade FROM. Don't let it advance past
+the clip's end during the fade.
+
+```ts
+let prevTimeAtTransition = past.clipTime;
+if (clipChanged) {
+  const transitionAtSec = findTransitionInstant(...);
+  blendT = ...;
+  const prevAtTransition = resolveActorClip(skit, actor, Math.max(0, transitionAtSec - 0.001));
+  prevTimeAtTransition = prevAtTransition.clipTime;
+}
+// ...later:
+prevClipTime: prevTimeAtTransition,  // not past.clipTime + TRANSITION_WINDOW_SEC
+```
+
+Two-bug compound: this fix together with the earlier T-pose-ghosting
+fix (no-prev-with-currentWeight<1) is what finally made cross-fades
+visibly smooth. Either bug alone made transitions look snappy.
+
+### A weight=blendT current with no prev action blends the character toward T-pose
+
+This one cost us a full debugging session because the visible symptom
+("cross-fade doesn't work") had nothing to do with the actual bug.
+
+The setup: cross-fade math computes `blendT` between two clip windows
+(prev and current). Then the renderer plays both with weights
+`(1 - blendT)` and `blendT`. If `prev` and `current` resolve to the
+SAME `AnimationClip` object (e.g. both fall through to `Idle_Wardrobe`
+via the one-shot-finished fallback), we correctly skip wiring up the
+second action — but the OLD code still set `currentAction.weight =
+blendT < 1`.
+
+What happens next is the trap. three.js's `PropertyMixer.apply()`
+fills any remaining weight (`1 - cumulativeWeight`) with the
+binding's **original** value, which is the **bind-pose** captured at
+action activation (essentially T-pose for our rig after the Y-up
+rotation correction). So with one action at weight 0.4 and no second
+contributor, every bone got 0.4 × Idle_Wardrobe + 0.6 × T-pose. The
+character "ghosted" toward T-pose during cross-fade windows —
+arms drifting outward, posture slightly off, head tilting back. Not a
+broken cross-fade, a *correctly executing* blend toward bind-pose.
+
+The fix is in [Character3D.tsx:523-538](src/components/Character3D.tsx):
+hoist the same-clip detection BEFORE choosing the current weight.
+If no real prev exists, use `currentWeight = 1` so the action fully
+drives bindings with no T-pose contribution.
+
+```ts
+const prevCandidate =
+  blendT < 1 ? resolveClipAndTime(prevClip, prevClipTime, prevClipLoop) : null;
+// Only treat it as a real prev if the clip is genuinely different —
+// otherwise the second action would be redundant and we'd accidentally
+// reduce current's weight, blending toward T-pose for the missing fraction.
+const prev =
+  prevCandidate && prevCandidate.clipObj !== current?.clipObj ? prevCandidate : null;
+const currentWeight = prev ? blendT : 1;
+```
+
+**Diagnostic gotcha**: at known transitions (clip A → clip B with
+distinct AnimationClip objects) the cross-fade WAS working correctly.
+The "snap" perception came from face textures (eyes, mouth) hard-cut
+at the exact same instant the body started blending — the body
+interpolated cleanly underneath but the face change made it look
+like everything snapped. Verifying by dumping per-bone quaternions
+right after `mixer.update(0)` confirms the cross-fade body pose is
+correct. If you ever doubt cross-fade is working, do a bone-level
+diff between adjacent frames before assuming the mixer is broken.
+
+**To use this knowledge in skits**: face texture changes (eyes,
+mouth) can be scheduled ~0.18s earlier than animation transitions
+if you want them to land mid-blend instead of at the body's snap
+point. Most beats benefit from the simultaneous snap (the smile-
+drops moment in niceDate, for instance, is more powerful as a
+hard face cut than as a fade); but for ambient transitions where
+the character isn't supposed to be "changing", stagger them.
+
 ### Cross-fading clips in a frame-by-frame renderer
 
 Remotion renders each frame as an isolated React tree — there is no
