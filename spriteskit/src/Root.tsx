@@ -1,5 +1,7 @@
 import React from 'react';
 import { Composition } from 'remotion';
+import { z } from 'zod';
+import { zColor } from '@remotion/zod-types';
 import { SkitComp } from './skits/Skit';
 import { aiTakingMyJob } from './skits/scripts/aiTakingMyJob';
 import { aiTakingMyJobPt2 } from './skits/scripts/aiTakingMyJobPt2';
@@ -8,12 +10,16 @@ import { areYouOkay } from './skits/scripts/areYouOkay';
 import { tedTalk } from './skits/scripts/tedTalk';
 import { widowmakerCasting } from './skits/scripts/widowmakerCasting';
 import { widowmaker } from './skits/scripts/widowmaker';
+import { drLena } from './skits/scripts/drLena';
+import { niceDate } from './skits/scripts/niceDate';
 import { visemes as widowmakerVisemes } from './skits/scripts/widowmaker.visemes';
 import { visemes as lastSongVisemes } from './skits/scripts/lastSongRemembered.visemes';
 import { visemes as aiTakingMyJobVisemes } from './skits/scripts/aiTakingMyJob.visemes';
 import { visemes as aiTakingMyJobPt2Visemes } from './skits/scripts/aiTakingMyJobPt2.visemes';
 import { visemes as areYouOkayVisemes } from './skits/scripts/areYouOkay.visemes';
 import { visemes as tedTalkVisemes } from './skits/scripts/tedTalk.visemes';
+import { visemes as drLenaVisemes } from './skits/scripts/drLena.visemes';
+import { visemes as niceDateVisemes } from './skits/scripts/niceDate.visemes';
 import { withVisemes } from './skits/withVisemes';
 import type { Skit } from './skits/types';
 
@@ -32,7 +38,182 @@ const skits: Skit[] = [
   withVisemes(tedTalk, tedTalkVisemes),
   widowmakerCasting,
   withVisemes(widowmaker, widowmakerVisemes),
+  withVisemes(niceDate, niceDateVisemes),
+  // drLena registered separately below with a zod schema so its
+  // outfit + stage colors are tweakable in Remotion Studio.
 ];
+
+// ---------------- Dr. Lena Park tweakable schema ----------------
+// Zod schema exposing the visually tweakable parts of the drLena
+// composition. The schema appears as live controls in Remotion Studio's
+// right-hand panel (color pickers, dropdowns, etc.). At render time,
+// values are merged into the base drLena skit — the timeline, dialogue,
+// camera, and visemes stay locked; only styling changes.
+//
+// To add a new tweakable: add a field here, then merge it into the
+// `tweakedSkit` const in <DrLenaComposition>. Don't add fields that
+// would invalidate the generated visemes (text, voiceId, timing).
+
+const CLOTHING_COLOR_VALUES = [
+  'Amber', 'Cappuccino', 'Cushion_Blue', 'Cushion_Orange', 'Cushion_Red',
+  'Espresso', 'Glass', 'Green_Cactus', 'Green_Leaves', 'Grey', 'Honey_Milk',
+  'Latte', 'Machine_Black', 'Matcha', 'Milkshake_Strawberry', 'Olive_Sofa',
+  'Paper', 'Porcelain_Blue', 'Porcelain_Orange', 'Silver', 'Whipped_Cream',
+] as const;
+
+const SKIN_TONE_VALUES = [
+  'Skintone_1', 'Skintone_2', 'Skintone_3', 'Skintone_4', 'Skintone_5', 'Skintone_6',
+] as const;
+
+const HAIR_COLOR_VALUES = Array.from({ length: 16 }, (_, i) =>
+  `Haircolour_${String(i + 1).padStart(2, '0')}`
+) as readonly string[] as readonly [string, ...string[]];
+
+const HAIR_MESH_VALUES = [
+  'Hair_Short', 'Hair_ShortBob', 'Hair_ShortSpiky', 'Hair_SideSweep',
+  'Hair_Long', 'Hair_Ponytail', 'Hair_Ponytail_Tight', 'Hair_Pigtails',
+  'Hair_Bun_Big', 'Hair_Bun_Small', 'Hair_Hijab', 'Hair_Senior_A',
+  'Hair_Senior_B', 'Hair_Shave_AfroTop', 'Hair_Shave_BuzzAfro',
+  'Hair_Shave_Buzzcut', 'Hair_Shave_Swept',
+] as const;
+
+const TOP_MESH_VALUES = [
+  'Clothes_Top_Tshirt',
+  'Clothes_Top_Tshirt_V',
+  'Clothes_Top_Hoodie',
+  'Clothes_Top_Sweater_TurtleNeck',
+  'Clothes_Top_CollarShirt_Long',
+  'Clothes_Top_CollarShirt_Tucked',
+  'Clothes_Top_CollarBlouse_Long',
+  'Clothes_Top_CollarBlouse_Short',
+] as const;
+
+const BOTTOM_MESH_VALUES = [
+  'Clothes_Legs_Pants_Long',
+  'Clothes_Legs_Pants_Short_Pockets',
+  'Clothes_Legs_Skirt',
+  'Clothes_Legs_Skirt_Long',
+] as const;
+
+// Held items. 'none' maps to null at merge time so "empty hands" is
+// a real option. The held_item_* bones are reparented to hand_palmR
+// at clone time, so any held mesh follows the right hand for free.
+const HELD_MESH_VALUES = [
+  'none',
+  'held_Tray',
+  'held_Cupcake_Bubblegum',
+  'held_Cupcake_Matcha',
+  'held_Cupcake_Orange',
+  'held_Cupcake_RedVelvet',
+  'held_Coffee_Full',
+  'held_Coffee_Whip',
+  'held_Milkshake_Chocolate',
+  'held_Milkshake_Empty',
+  'held_Milkshake_Matcha',
+  'held_Milkshake_Strawberry',
+  'held_set_1_Cup',
+  'held_set_2_Cup',
+  'held_set_3_Cup',
+  'held_set_1_Plate',
+  'held_set_2_Plate',
+  'held_set_3_Plate',
+] as const;
+
+const ACCESSORY_VALUES = [
+  'none',
+  'Accessory_Glasses',
+  'Accessory_Headphones_black',
+  'Accessory_Headphones_blue',
+  'Accessory_Headphones_pink',
+  'Accessory_Headphones_red',
+  'Accessory_Headphones_yellow',
+  'Hair_Acc_Band',
+] as const;
+
+const drLenaSchema = z.object({
+  // Outfit — body
+  skinTone: z.enum(SKIN_TONE_VALUES).describe('Lena skin tone'),
+  // Hair
+  hair: z.enum(HAIR_MESH_VALUES).describe('Lena hair mesh'),
+  hairColor: z.enum(HAIR_COLOR_VALUES as readonly [string, ...string[]]).describe('Lena hair colour'),
+  // Top: mesh + colour
+  top: z.enum(TOP_MESH_VALUES).describe('Lena top garment (Tshirt, Hoodie, CollarShirt, etc.)'),
+  topColor: z.enum(CLOTHING_COLOR_VALUES).describe('Lena top colour'),
+  // Bottom: mesh + colour
+  bottom: z.enum(BOTTOM_MESH_VALUES).describe('Lena bottom garment (Pants, Skirt, etc.)'),
+  legColor: z.enum(CLOTHING_COLOR_VALUES).describe('Lena leg colour'),
+  shoesColor: z.enum(CLOTHING_COLOR_VALUES).describe('Lena shoes colour'),
+  // Accessory: mesh + tint
+  accessory: z.enum(ACCESSORY_VALUES).describe('Lena accessory (none = no accessory)'),
+  accessoryColor: zColor().describe('Accessory tint colour'),
+  // Held item — appears in Lena's right hand. 'none' = empty hands.
+  held: z.enum(HELD_MESH_VALUES).describe('Item held in right hand (tray, cup, milkshake, etc.)'),
+  // Stage
+  rugColor: zColor().describe('TED red rug colour'),
+  stageFloorColor: zColor().describe('Dark stage floor colour'),
+});
+
+type DrLenaTweaks = z.infer<typeof drLenaSchema>;
+
+const drLenaDefaults: DrLenaTweaks = {
+  skinTone: 'Skintone_3',
+  hair: 'Hair_ShortBob',
+  hairColor: 'Haircolour_07',
+  top: 'Clothes_Top_CollarBlouse_Long',
+  topColor: 'Latte',
+  bottom: 'Clothes_Legs_Pants_Long',
+  legColor: 'Machine_Black',
+  shoesColor: 'Machine_Black',
+  accessory: 'Accessory_Glasses',
+  accessoryColor: '#1a1a1a',
+  held: 'none',
+  rugColor: '#c1241a',
+  stageFloorColor: '#0a1424',
+};
+
+/**
+ * Render-time component for the drLena composition. Receives the tweaks
+ * as props from the zod schema, merges them into the base skit, and
+ * hands the merged skit to SkitComp. The voiceover visemes are
+ * pre-wrapped on the base skit, so dialogue + lip-sync stay intact.
+ */
+const DrLenaComposition: React.FC<DrLenaTweaks> = (tweaks) => {
+  const base = withVisemes(drLena, drLenaVisemes);
+  const tweakedSkit: Skit = {
+    ...base,
+    actors: base.actors.map((a) =>
+      a.id === 'lena'
+        ? {
+            ...a,
+            outfit: {
+              ...a.outfit!,
+              skinTone: tweaks.skinTone,
+              hair: tweaks.hair,
+              // HairColor enum is a string union derived at build
+              // time; cast through the type to satisfy the union narrowing.
+              hairColor: tweaks.hairColor as NonNullable<typeof a.outfit>['hairColor'],
+              top: tweaks.top,
+              topColor: tweaks.topColor,
+              bottom: tweaks.bottom,
+              legColor: tweaks.legColor,
+              shoesColor: tweaks.shoesColor,
+              accessory: tweaks.accessory === 'none' ? null : tweaks.accessory,
+              accessoryColor: tweaks.accessoryColor,
+              held: tweaks.held === 'none' ? null : tweaks.held,
+            },
+          }
+        : a,
+    ),
+    // Pass stage colours through to the background. The Background
+    // component + Skit.tsx 3D rug both read these when kind === 'tedStage'.
+    background: {
+      kind: 'tedStage',
+      rugColor: tweaks.rugColor,
+      stageFloorColor: tweaks.stageFloorColor,
+    } as Skit['background'],
+  };
+  return <SkitComp skit={tweakedSkit} />;
+};
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -49,6 +230,18 @@ export const RemotionRoot: React.FC = () => {
           height={skit.height ?? 1920}
         />
       ))}
+      {/* Dr. Lena Park composition with live-tweakable outfit + stage
+          colors. Open in Remotion Studio to use the controls. */}
+      <Composition
+        id={drLena.id}
+        component={DrLenaComposition}
+        schema={drLenaSchema}
+        defaultProps={drLenaDefaults}
+        durationInFrames={Math.round(drLena.durationInSeconds * (drLena.fps ?? 30))}
+        fps={drLena.fps ?? 30}
+        width={drLena.width ?? 1080}
+        height={drLena.height ?? 1920}
+      />
     </>
   );
 };

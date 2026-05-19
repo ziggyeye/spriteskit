@@ -38,7 +38,31 @@ export type Direction =
 export type Background =
   | { kind: 'gradient'; colors: [string, string] }
   | { kind: 'solid'; color: string }
-  | { kind: 'radial'; colors: [string, string] };
+  | { kind: 'radial'; colors: [string, string] }
+  /**
+   * TED-stage backdrop: deep blue stage, oversized red "TED" letters
+   * offset to one side, audience silhouettes along the bottom edge. The
+   * red circular rug under the speaker is rendered inside the 3D scene
+   * (see `Skit.tsx`) so it scales with the camera. Use this for Dr.
+   * Lena Park videos and any other "earnest TED-talk" content.
+   *
+   * Optional colour overrides — when omitted, the defaults are
+   * `#c1241a` (TED red rug) and `#0a1424` (navy stage floor). Exposed
+   * so they can be tweaked from Remotion Studio via a zod schema.
+   */
+  | { kind: 'tedStage'; rugColor?: string; stageFloorColor?: string }
+  /**
+   * Restaurant interior: warm amber DOM gradient suggesting pendant
+   * lights, soft bokeh dots representing other diners' candles, and 3D
+   * dinner-table set pieces (table + 2 wine glasses) rendered inside
+   * the ThreeCanvas. Use for the "Nice Date" / dinner-conversation
+   * skits and any other intimate-restaurant-scene content.
+   *
+   * Optional overrides: `floorColor` (dark wood floor) and
+   * `tableColor` (warm wood table). Glass colour is fixed at the
+   * material level (wine glass crystal).
+   */
+  | { kind: 'restaurant'; floorColor?: string; tableColor?: string };
 
 export type Position = { x: number; y: number };
 

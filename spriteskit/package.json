@@ -15,12 +15,14 @@
     "@remotion/cli": "4.0.260",
     "@remotion/renderer": "4.0.260",
     "@remotion/three": "^4.0.260",
+    "@remotion/zod-types": "^4.0.260",
     "@types/three": "^0.184.1",
     "elevenlabs": "^1.59.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "remotion": "4.0.260",
-    "three": "^0.184.0"
+    "three": "^0.184.0",
+    "zod": "^3.22.3"
   },
   "devDependencies": {
     "@types/node": "20.11.0",

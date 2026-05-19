@@ -91,6 +91,93 @@ See the parts attach block in [Character3D.tsx](src/components/Character3D.tsx).
 **The skeleton rebind is the key trick.** Without it, the part still
 references the source FBX's bones and animates with a phantom rig.
 
+### Cross-fading clips in a frame-by-frame renderer
+
+Remotion renders each frame as an isolated React tree — there is no
+mixer state carried across frames, and frames are not even rendered
+sequentially. That breaks the usual three.js cross-fade flow
+(`prevAction.crossFadeTo(nextAction, 0.3)` — which relies on the
+mixer maintaining the fade over wall-clock time).
+
+Solution: **resolve the blend weight purely from `sec`**, then on
+every frame play TWO actions on the mixer with explicit weights
+summing to 1.0.
+
+1. Refactor clip resolution into a pure helper:
+   `resolveActorClip(skit, actor, sec) -> { clip, clipTime, clipLoop }`.
+2. Call it twice — once at `sec`, once at `sec - TRANSITION_WINDOW_SEC`.
+3. If the two return different clips, binary-search the window for the
+   exact transition instant (~12 iterations gets sub-ms precision).
+4. `blendT = (sec - transitionInstant) / TRANSITION_WINDOW_SEC`,
+   clamped to [0, 1].
+5. In the renderer: `mixer.stopAllAction()`,
+   `currentAction.weight = blendT`, `prevAction.weight = 1 - blendT`,
+   both `.play()`, then `mixer.update(0)` to evaluate the weighted
+   skeleton pose. Use `action.time = ...` (per-action) NOT
+   `mixer.setTime(...)` (global) so each action can be at its own
+   local time independently.
+
+Picking `TRANSITION_WINDOW_SEC = 0.18` (~5 frames at 30fps): fast
+enough not to delay choreography, long enough to hide the snap.
+
+The binary-search step matters: if the clip switch happened 0.05s
+ago and the window is 0.18s, blendT should be 0.27 — not 0 or 1.
+Without the search we'd only see the blend on the exact frame the
+transition started, which is still a snap.
+
+### Don't try to port Mixamo (or any foreign-skeleton) animations at runtime
+
+We spent a chunk of time trying to drop in Mixamo's animation
+library (2000+ free humanoid clips) via a runtime bone-name remap.
+It didn't work — pulled out the whole pipeline.
+
+**What we tried, in order**:
+
+1. Wrote a bone-name remap (`mixamorig:Hips → spine_pelvis`, etc.)
+   so Mixamo's tracks would target our bones. Necessary but
+   insufficient.
+2. Discovered the `mixamorig:` prefix sometimes loses its colon
+   (`mixamorigHips`) — FBXLoader version variance. Accepted both.
+3. Discovered Mixamo's skeleton is ~180 world units tall vs our
+   ~1.5 units. Raw `.position` keyframes teleported the character
+   out of frame. Tried dropping `.position` tracks entirely — the
+   dance lost its hip bounce and looked stiff.
+4. Tried scaling + rebasing position tracks
+   (`(mixamoKey.y - mixamoHipsRest) * 0.01 + ourPelvisRest`).
+   Important gotcha here: animation tracks set `bone.position`
+   directly, which is a LOCAL value relative to parent. Use the
+   bone's local rest, NOT world rest, when rebasing. We initially
+   used world rest (0.417) and the character floated because the
+   parent transform was double-applied.
+5. After all of that, the dance still looked bad — limbs going
+   through the body, weight on the wrong foot, "off" in ways that
+   are hard to pin down.
+
+**Why it ultimately doesn't work**: bone NAMES matching is just
+the entry ticket. The math of "apply this rotation keyframe to
+this bone" only produces a correct pose if the source and target
+rigs also share **bone lengths**, **rest poses** (joint
+orientations at frame 0), and **hierarchy depth**. Mixamo's rig
+has `Hips → Spine → Spine1 → Spine2 → Neck → Head` (6 joints
+of spine + neck); ours has `spine_pelvis → spine_belly →
+spine_chest → head` (4 joints). When we drop the Spine2 and Neck
+rotations, the rotations that were supposed to distribute across
+those joints collapse onto fewer bones — the head ends up rotated
+wrong, even after every other bone is correct. Same for bone
+lengths: Mixamo's upper arm is proportionally longer than ours,
+so a "raise hand to head" rotation in Mixamo overshoots on us.
+
+**The path that would work** if we ever need it: retarget the
+animation in Blender (Rokoko plugin or hand-authored bone
+constraints), which re-bakes the rotations against OUR rig's
+actual bone lengths and rest poses. Then export the result as a
+plain FBX and drop it in `public/models/` like any other clip.
+That's a one-time Blender pass per clip, not a runtime trick.
+
+**For now we have 56 clips that work perfectly** — 17 talking-head
+plus 39 cafe-vocab, both authored against our exact skeleton.
+That's deeper than most indie animation libraries; lean on it.
+
 ### Animations are portable across same-skeleton rigs — no rebind needed
 
 Once we'd done the parts skeleton-rebind, we wondered if we could

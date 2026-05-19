@@ -40,11 +40,17 @@ export type ClipName =
   | 'React_Handshake'
   | 'React_Jump_Joy'
   | '0TPose'
-  // --- Characters-Pack cafe vocabulary (39) ---
+  // --- Characters-Pack cafe vocabulary (39 ambient + 2 freeze poses) ---
   // Long ambient idles
   | 'Idle_Wardrobe'
   | 'Wait_Shifting'
   | 'Wait_Choosy'
+  // Single-frame freeze poses (~33ms). Schedule with loop:false to
+  // hold the pose for a deliberate still beat — the cross-fade system
+  // smooths entry/exit, and one-shot fallback won't reach for these
+  // since they're shorter than any beat.
+  | 'Wait_Pose'
+  | 'Stand_Pose'
   // Sofa (sit on a couch, drink, eat, pick up items)
   | 'Sofa_Sit'
   | 'Sofa_Sit_RootMotion'

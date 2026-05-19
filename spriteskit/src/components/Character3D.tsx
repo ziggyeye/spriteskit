@@ -58,7 +58,12 @@ const EXTRA_ANIMATIONS_FBX = 'models/Character_All.fbx';
  * rig. We use the base rig's version (it's identical) and drop the
  * Character_All copy to avoid ambiguity.
  */
-const SKIP_EXTRA_CLIPS = new Set(['Walk_Loop', '0TPose', 'Stand_Pose', 'Wait_Pose']);
+// Wait_Pose and Stand_Pose are single-frame "freeze pose" clips
+// (~33ms, one keyframe). Useful with loop:false to hold a deliberate
+// still pose for a short window. Walk_Loop is provided by the base
+// Lips-Pack rig already; 0TPose is the T-pose fallback we explicitly
+// don't want as a chosen clip.
+const SKIP_EXTRA_CLIPS = new Set(['Walk_Loop', '0TPose']);
 
 const textureCache = new Map<string, Texture>();
 function loadTexture(url: string): Texture {
@@ -229,6 +234,17 @@ type Props = {
   clip: ClipName;
   clipTime: number;
   clipLoop: boolean;
+  /**
+   * For cross-fading between consecutive animation clips. When
+   * `blendT < 1`, the renderer plays both `prevClip` (weight
+   * `1 - blendT`) and `clip` (weight `blendT`) so the pose smoothly
+   * interpolates per-bone. When `blendT === 1` or `prevClip === clip`
+   * there is no blend; only the current action plays.
+   */
+  prevClip: ClipName;
+  prevClipTime: number;
+  prevClipLoop: boolean;
+  blendT: number;
   viseme: Viseme;
   eyes: EyeSprite;
   /**
@@ -259,6 +275,10 @@ export const Character3D: React.FC<Props> = ({
   clip,
   clipTime,
   clipLoop,
+  prevClip,
+  prevClipTime,
+  prevClipLoop,
+  blendT,
   viseme,
   eyes,
   tint,
@@ -447,43 +467,79 @@ export const Character3D: React.FC<Props> = ({
 
   // Step the animation mixer deterministically.
   //
-  // Rule: if a one-shot clip has finished (clipTime > clipObj.duration),
-  // we automatically fall back to the looping IDLE (React_Stand_Discussion_1)
-  // so the actor never freezes on a posed end-frame or collapses to
-  // T-pose. Looping idles play forever; one-shot clips give way to idle.
+  // Two-action cross-fade: between consecutive `animate` actions (or
+  // between an animate and the fallback idle), we play BOTH the prev
+  // and current clip with weights summing to 1.0 for a short window
+  // (TRANSITION_WINDOW_SEC, see Skit.tsx). Three's mixer blends pose
+  // contributions per-bone, so the visible pose smoothly interpolates
+  // without a snap.
+  //
+  // One-shot fallback rule (still applies inside the resolver): if a
+  // one-shot clip has finished, we automatically fall back to the
+  // looping IDLE so the actor never freezes on a posed end-frame.
   if (rig) {
-    const requested = rig.clips[clip];
-    const idleClip = rig.clips['React_Stand_Discussion_1'] ?? rig.clips['0TPose'];
-    let activeClip = requested ?? idleClip;
-    let activeTime: number;
+    // Idle_Wardrobe (6.8s, Characters-Pack) is the universal fallback —
+    // a calm ambient stand-and-shift that reads as natural body language.
+    // It replaced React_Stand_Discussion_1 (which over-gestures and made
+    // every long-form video look samey). React_Stand_Discussion_1 +
+    // 0TPose remain as second/third fallbacks for older asset packs.
+    const idleClip =
+      rig.clips['Idle_Wardrobe'] ??
+      rig.clips['React_Stand_Discussion_1'] ??
+      rig.clips['0TPose'];
+    const resolveClipAndTime = (
+      name: ClipName,
+      time: number,
+      loop: boolean
+    ): { clipObj: AnimationClip; localTime: number } | null => {
+      const requested = rig.clips[name];
+      if (!requested) {
+        if (!idleClip) return null;
+        return { clipObj: idleClip, localTime: time % idleClip.duration };
+      }
+      if (loop) return { clipObj: requested, localTime: time % requested.duration };
+      if (time <= requested.duration) return { clipObj: requested, localTime: time };
+      // One-shot finished — fall back to idle, offset by time since end.
+      if (idleClip) {
+        return { clipObj: idleClip, localTime: (time - requested.duration) % idleClip.duration };
+      }
+      // No idle — clamp at the one-shot's end pose.
+      return { clipObj: requested, localTime: requested.duration };
+    };
 
-    if (!requested) {
-      // Unknown clip name; fall straight to idle, advancing with sec.
-      activeClip = idleClip;
-      activeTime = clipTime;
-    } else if (clipLoop) {
-      // Looping clip — wrap clipTime onto the clip's duration.
-      activeTime = clipTime % requested.duration;
-    } else if (clipTime <= requested.duration) {
-      // One-shot still playing.
-      activeTime = clipTime;
-    } else if (idleClip) {
-      // One-shot finished — return to idle. Offset the idle by the
-      // time since the clip ended, so the idle plays naturally.
-      activeClip = idleClip;
-      activeTime = (clipTime - requested.duration) % idleClip.duration;
-    } else {
-      // No idle available — clamp on end pose as a fallback.
-      activeTime = requested.duration;
-    }
+    const current = resolveClipAndTime(clip, clipTime, clipLoop);
+    const prev = blendT < 1 ? resolveClipAndTime(prevClip, prevClipTime, prevClipLoop) : null;
 
-    if (activeClip) {
+    if (current) {
       rig.mixer.stopAllAction();
-      const action = rig.mixer.clipAction(activeClip);
-      action.setLoop(LoopRepeat, Infinity);
-      action.clampWhenFinished = true;
-      action.reset().play();
-      rig.mixer.setTime(Math.max(0, activeTime));
+
+      // Current clip: weight = blendT (1 when no blend in progress).
+      const currentAction = rig.mixer.clipAction(current.clipObj);
+      currentAction.setLoop(LoopRepeat, Infinity);
+      currentAction.clampWhenFinished = true;
+      currentAction.reset();
+      currentAction.time = Math.max(0, current.localTime);
+      currentAction.setEffectiveWeight(blendT);
+      currentAction.play();
+
+      // Prev clip (only when blending): weight = 1 - blendT.
+      // Skip if prev resolves to the SAME AnimationClip object as
+      // current — would just be the same pose at the same time, no
+      // visual difference, and re-using clipAction with two weights
+      // on the same clip can produce odd results.
+      if (prev && prev.clipObj !== current.clipObj) {
+        const prevAction = rig.mixer.clipAction(prev.clipObj);
+        prevAction.setLoop(LoopRepeat, Infinity);
+        prevAction.clampWhenFinished = true;
+        prevAction.reset();
+        prevAction.time = Math.max(0, prev.localTime);
+        prevAction.setEffectiveWeight(1 - blendT);
+        prevAction.play();
+      }
+
+      // Advance mixer by 0 to evaluate weighted contributions onto
+      // the skeleton without changing action.time again.
+      rig.mixer.update(0);
     }
   }
 

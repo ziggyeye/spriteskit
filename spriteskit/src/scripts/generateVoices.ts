@@ -26,6 +26,8 @@ import { lastSongRemembered } from '../skits/scripts/lastSongRemembered';
 import { areYouOkay } from '../skits/scripts/areYouOkay';
 import { tedTalk } from '../skits/scripts/tedTalk';
 import { widowmaker } from '../skits/scripts/widowmaker';
+import { drLena } from '../skits/scripts/drLena';
+import { niceDate } from '../skits/scripts/niceDate';
 import { visemeKey } from '../skits/withVisemes';
 import type { VisemeFrame } from '../skits/assets';
 import type { Skit } from '../skits/types';
@@ -39,6 +41,8 @@ const SKITS: SkitEntry[] = [
   { skit: areYouOkay, outFile: 'src/skits/scripts/areYouOkay.visemes.ts' },
   { skit: tedTalk, outFile: 'src/skits/scripts/tedTalk.visemes.ts' },
   { skit: widowmaker, outFile: 'src/skits/scripts/widowmaker.visemes.ts' },
+  { skit: drLena, outFile: 'src/skits/scripts/drLena.visemes.ts' },
+  { skit: niceDate, outFile: 'src/skits/scripts/niceDate.visemes.ts' },
 ];
 
 async function generateVoicesForSkit({ skit, outFile }: SkitEntry) {

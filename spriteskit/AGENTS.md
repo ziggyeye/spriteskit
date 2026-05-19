@@ -214,12 +214,119 @@ furniture. For pure visual gags ("character zoned out on an invisible
 couch"), this is fine. For literal cafe scenes, you'd need to render
 prop meshes separately or composite background art.
 
+**Cross-fades are automatic** — when an actor's clip changes between
+consecutive frames (e.g. `React_Stand_Thinking` ending and
+`React_CrossArms` starting, or a one-shot clip falling back to idle),
+the renderer plays BOTH clips for `TRANSITION_WINDOW_SEC ≈ 0.18s`
+with weights that sum to 1, blending the pose per-bone via three.js's
+mixer. You don't need to schedule overlaps — back-to-back `animate`
+actions blend cleanly out of the box. If you want a snap-cut on
+purpose (e.g. comedic timing), shorten the window or accept that
+0.18s of blend will happen.
+
+### Animation variety: avoid the Discussion trap
+
+`React_Stand_Discussion_1/2` are the most arm-emphatic standing
+clips in the library — they're great for one beat at a time, but
+leaning on them as the baseline makes long-form video (TED talks,
+monologues, anything 60s+) look samey because the character is
+doing the same big arm-gesture loop every six seconds. The viewer
+notices.
+
+**Use these as the natural standing-and-talking baseline instead:**
+
+- **`Idle_Wardrobe`** (6.8s) — calm, slightly-shifting ambient idle.
+  This is the universal fallback idle (set in
+  [Character3D.tsx](src/components/Character3D.tsx) and
+  [Skit.tsx](src/skits/Skit.tsx) `resolveActorClip`) and reads as
+  natural body language for any "standing while talking" beat.
+- **`Wait_Shifting`** (5.0s) — foot-shift, light fidget. Good for
+  transitional beats / topic pivots / moments of small tension.
+- **`Wait_Choosy`** (6.0s) — weighing / considering. Perfect for
+  setup beats where the character is introducing or pondering.
+
+**Reserve the React_Stand_* clips for moments that actually warrant
+the gesture:**
+
+- `React_Stand_Discussion_1/2` — arm-emphatic beats where you want
+  motion (e.g. an excited setup, energetic mid-monologue).
+  Use sparingly, not as the default.
+- `React_Stand_Thinking` (1.3s) — one-shot thinking beat.
+- `React_Stand_ListeningNod` (5.3s) — agreeing/listening (good for
+  reaction-shot characters in multi-actor scenes).
+- `React_CrossArms` (0.8s) — holds the crossed-arms end-pose
+  forever; the authority / "let me explain" stance.
+- `React_CrossedArms_Thinking` (1.7s) — authority + thought.
+- `React_Stand_YES` / `NO` / `ThumbsUp` — emphatic one-beats.
+
+**Rule of thumb for skits longer than 30s**: never use the same
+clip in two adjacent windows. Vary every 6-10s. Plan animations
+beat-by-beat against the dialogue — match the clip's vibe to what
+the line is doing. Dr. Lena Park's [drLena.ts](src/skits/scripts/drLena.ts)
+is a worked example: 13 windows, 6 distinct clips, zero
+back-to-back repeats.
+
+**The universal idle fallback** (when a one-shot finishes before
+the window ends): `Idle_Wardrobe`. Changed from
+`React_Stand_Discussion_1` in May 2026 because the old default
+caused the same samey-gesture problem from the engine side.
+
+### Adding new animations
+
+Stick with the 56 clips we already have. Both the Lips-Pack base
+rig (17 clips) and Characters-Pack `Character_All.fbx` (39 clips)
+were authored for our exact 53-bone skeleton, so they animate
+perfectly. We tried wiring up Mixamo's library (2000+ clips) via a
+runtime bone-name remap, but Mixamo's skeleton has different bone
+proportions, rest poses, and hierarchy depth than ours — even after
+fixing names and scaling position tracks, the poses didn't land
+right (limbs going through bodies, weight on the wrong foot, etc.).
+The lesson is in [LEARNINGS.md](LEARNINGS.md).
+
+If you ever genuinely need an animation we don't have, the path that
+would work is **retargeting in Blender** (Rokoko plugin or hand-set
+bone constraints) — re-bake the Mixamo animation against our actual
+skeleton, export as FBX, drop in `public/models/` like any other
+clip. That's a one-time Blender pass per clip, not a runtime trick.
+Don't reintroduce Mixamo support at the loader level.
+
 ### Face sprites
 
 - **Eye sprites** (`public/sprites/eyes/`) — 16 total: `Eye_0_Default`,
   `Eye_Angry`, `Eye_Blink1/2/3`, `Eye_Closed`, `Eye_Flat`,
   `Eye_Frustrated`, `Eye_Hearts1/2/3/4`, `Eye_Kawaii`, `Eye_Sad Cry`,
   `Eye_Starry1/2`.
+
+**Always add random blinks to voiced skits.** Holding open eyes for
+the duration of a monologue reads as robotic / dead-eyed. Use
+`randomBlinks()` from
+[`eyeSequences.ts`](src/skits/eyeSequences.ts):
+
+```ts
+import { randomBlinks } from '../eyeSequences';
+
+timeline: [
+  ...cameraTimeline,
+  ...dialogue,
+  ...eyes,                                       // explicit emotion windows
+  ...randomBlinks('lena', 0, 110, { seed: 42 }), // overlay blinks AFTER eyes
+  ...popups,
+  ...animations,
+],
+```
+
+Key properties:
+
+- **Seeded PRNG** (mulberry32) — re-renders produce identical blink
+  timing. Required because Remotion renders frames non-sequentially.
+- **Natural rate** — defaults to 1.8-5.5s gaps with occasional
+  double-blinks; lands around 15-18 blinks/minute (real human range).
+- **Layering** — Skit.tsx eye resolution is last-match-wins per
+  frame, so call `randomBlinks` AFTER your main eye actions. Each
+  blink fires for ~480ms then the underlying Eye_Default / Eye_Flat /
+  Eye_Kawaii window re-asserts automatically.
+- **Tunable** — `minGapSec`, `maxGapSec`, `frameSec`, `doubleBlinkProb`.
+  Crank up frequency for anxious characters; reduce for stoic ones.
 - **Mouth simplified** (`public/sprites/lips_simple/`) — 20 total:
   - Visemes: `Lips_s00_Default` (closed), `s01_sh-ch`, `s02_a-i`,
     `s03_ah-i`, `s04_th`, `s05_e-k-r`, `s06_s-z`, `s07_m-b-p`, `s08_f-v`,
