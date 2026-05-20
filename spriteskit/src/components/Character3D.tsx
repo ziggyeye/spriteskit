@@ -483,17 +483,14 @@ export const Character3D: React.FC<Props> = ({
     // It replaced React_Stand_Discussion_1 (which over-gestures and made
     // every long-form video look samey). React_Stand_Discussion_1 +
     // 0TPose remain as second/third fallbacks for older asset packs.
+    // Last-resort fallback only if the author scheduled an unknown
+    // ClipName. Skit.tsx's resolveActorClip now keeps the clip name
+    // stable across the window (hold end pose, no idle fallback), so
+    // this only fires on misconfigured skits.
     const idleClip =
       rig.clips['Idle_Wardrobe'] ??
       rig.clips['React_Stand_Discussion_1'] ??
       rig.clips['0TPose'];
-    // A clip shorter than this is treated as a deliberate freeze
-    // pose (e.g. Wait_Pose 0.033s) — when it "ends" we hold its end
-    // pose forever instead of falling back to idle. Below this
-    // threshold there's no meaningful "animation" to play, only a
-    // sculpted single-frame pose, and the author scheduled it
-    // because they want stillness.
-    const FREEZE_POSE_MAX_DURATION = 0.2;
 
     const resolveClipAndTime = (
       name: ClipName,
@@ -502,22 +499,22 @@ export const Character3D: React.FC<Props> = ({
     ): { clipObj: AnimationClip; localTime: number } | null => {
       const requested = rig.clips[name];
       if (!requested) {
+        // Unknown clip name — fall through to the bind-pose idle if we
+        // have one. This is a last-resort path; authors should always
+        // schedule valid ClipName values.
         if (!idleClip) return null;
         return { clipObj: idleClip, localTime: time % idleClip.duration };
       }
       if (loop) return { clipObj: requested, localTime: time % requested.duration };
-      if (time <= requested.duration) return { clipObj: requested, localTime: time };
-      // One-shot finished. If the clip is a freeze pose, hold its end
-      // pose forever (no fallback). For longer one-shots (reactions,
-      // gestures), fall back to idle so the actor doesn't freeze.
-      if (requested.duration <= FREEZE_POSE_MAX_DURATION) {
-        return { clipObj: requested, localTime: requested.duration };
-      }
-      if (idleClip) {
-        return { clipObj: idleClip, localTime: (time - requested.duration) % idleClip.duration };
-      }
-      // No idle — clamp at the one-shot's end pose.
-      return { clipObj: requested, localTime: requested.duration };
+      // One-shot: play through duration, then HOLD the end pose for
+      // the rest of the window. No idle fallback at the renderer
+      // level either — Skit.tsx's resolveActorClip already holds the
+      // clip name across the window, so this renderer path just
+      // needs to clamp time to duration when we overshoot.
+      return {
+        clipObj: requested,
+        localTime: Math.min(time, requested.duration),
+      };
     };
 
     const current = resolveClipAndTime(clip, clipTime, clipLoop);

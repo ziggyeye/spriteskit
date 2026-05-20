@@ -217,6 +217,21 @@ export type Action =
       endSec: number;
       /** Loop the clip across the window. Default true. */
       loop?: boolean;
+      /**
+       * Override the per-clip default `lingerSec` (from CLIP_INFO) for
+       * this specific window. The linger phase holds the clip's end
+       * pose for this many seconds AFTER the animation finishes,
+       * before falling back to Idle_Wardrobe. Set to a large value
+       * (e.g. 10) to hold the end pose through the rest of the window.
+       *
+       * Use cases:
+       * - Final beat of a skit: long linger so the closing bookend
+       *   doesn't fall back to Idle_Wardrobe (which would repeat an
+       *   already-used clip).
+       * - Authority pose held longer than the default: set
+       *   `React_CrossArms` with lingerSec=4 to commit to the pose.
+       */
+      lingerSec?: number;
     }
   | {
       /** Override the actor's eye sprite for a time window. */

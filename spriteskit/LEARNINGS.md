@@ -126,6 +126,69 @@ deliberate freeze made by chaining Wait_Pose for slot-fill),
 authors should know that Wait_Pose's end pose is what gets held —
 which is what they wanted anyway.
 
+### Scheduled animate windows hold the end pose; no implicit Idle_Wardrobe fallback
+
+Started as a "linger system" with per-clip authored hold-durations
+that then fell back to Idle_Wardrobe. Quickly evolved into a flat
+"hold end pose indefinitely within the window" rule because:
+
+1. The per-clip lingerSec was easy to under- or over-tune.
+2. Idle_Wardrobe would pile up as an implicit fallback across every
+   gap, violating the no-repeats rule even when authors only scheduled
+   it once.
+3. Authors don't actually want different default lingers per clip —
+   they want explicit control over what pose holds when.
+
+Current rule: `resolveActorClip` returns the same clip name with
+clipTime clamped to duration for the entire scheduled window. The
+character plays the gesture once, then freezes on the end pose until
+the next animate window. No fallback to idle anywhere in the engine.
+
+Authors must schedule continuous coverage of the timeline. Gaps =
+held end pose of the previous animate.
+
+### The linger system + no-repeats rule (animation polish)
+
+Two related rules locked in during niceDate / dailyLenaPigs polish:
+
+**1. Each animation clip is used at most ONCE per character per skit.**
+Even if two uses are 60 seconds apart, the viewer's eye registers
+"that gesture happened again" and reads it as samey. For Lena's
+TED-talk register that means budgeting from ~13 viable standing-pose
+clips for a 75-90s skit. Authors should schedule **≤13 windows** per
+character, no clip reused.
+
+**2. The linger system holds each clip's end pose between windows.**
+Naive scheduling — a 5s window with a 0.8s clip — produces 0.8s of
+animation then 4.2s of fallback `Idle_Wardrobe`. Result: every short
+clip "ends" and snaps into idle. Looks like a robot reset.
+
+Fix: per-clip `lingerSec` in `CLIP_INFO` (assets.ts). After the
+clip's animation finishes, the engine HOLDS the end pose for
+`lingerSec` (authored per-clip, 0.3s for ambient idles, 2.0s for
+authority poses like CrossArms) before falling back to idle. The
+cross-fade then smooths the transition from the held end pose
+INTO Idle_Wardrobe.
+
+So a 5s `React_CrossArms` window now plays:
+
+- 0.0-0.8s: animation
+- 0.8-2.8s: linger (held arms-crossed pose)
+- 2.8-2.98s: cross-fade out into Idle_Wardrobe
+- 2.98-5.0s: Idle_Wardrobe
+
+The linger phase is implemented in Skit.tsx's `resolveActorClip`:
+during linger, the resolver returns the same clip name with
+`clipTime` clamped to `duration`, so the cross-fade detection
+doesn't fire (clip unchanged across linger frames), but the renderer
+keeps holding the end-pose pose. Cross-fade only fires when the
+linger expires and clip changes to Idle_Wardrobe.
+
+**Authoring implication**: when budgeting animation windows, you
+no longer need to schedule "filler idles" between gesture beats.
+Just schedule the gesture, let the linger hold, the engine handles
+the rest.
+
 ### Prev clip time during cross-fade must be HELD at the transition instant, not advanced
 
 Subtle bug discovered debugging Liam's "pop" at sec=10.733 (one-shot

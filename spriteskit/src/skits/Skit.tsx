@@ -21,6 +21,7 @@ import type {
   Skit,
 } from './types';
 import type { ClipName, EyeSprite, Viseme } from './assets';
+import { CLIP_INFO, FALLBACK_IDLE_CLIP, FREEZE_POSE_MAX_DURATION } from './assets';
 import { LEGACY_OUTFITS } from './legacyOutfits';
 
 // --- Coordinate space ---
@@ -521,6 +522,7 @@ function resolveActorClip(
   let clip: ClipName = 'Idle_Wardrobe';
   let clipTime = sec;
   let clipLoop = true;
+  let lingerOverride: number | undefined; // per-action override of CLIP_INFO.lingerSec
   let walking = false;
 
   // Walking position needs the actor's start as a base; we re-walk
@@ -553,7 +555,55 @@ function resolveActorClip(
         clip = action.clip;
         clipLoop = action.loop ?? true;
         clipTime = sec - action.startSec;
+        lingerOverride = action.lingerSec;
       }
+    }
+  }
+
+  // Apply the one-shot-finished fallback at the skit level too — not
+  // just inside Character3D's resolveClipAndTime. This is what lets
+  // cross-fade detection (`past.clip !== now.clip`) fire when a
+  // one-shot ends inside its scheduled window and falls back to
+  // Idle_Wardrobe. Without this, the rename happens silently in the
+  // renderer and the blend math never sees it. Mirrors the
+  // resolveClipAndTime logic exactly so the two layers stay in sync.
+  //
+  // The lifecycle has THREE phases for a non-loop clip:
+  //   [0, duration)               → play the clip
+  //   [duration, duration+linger) → hold the END POSE (clip name still
+  //                                  reports as the original clip;
+  //                                  renderer clamps time to duration)
+  //   [duration+linger, ∞)        → fall back to Idle_Wardrobe
+  //
+  // The linger phase makes characters read as "did the gesture, then
+  // paused in it" rather than snapping to the next clip immediately.
+  // After a non-looping animation finishes, hold the end pose for the
+  // rest of the scheduled window. No automatic fallback to
+  // Idle_Wardrobe — that was making Idle_Wardrobe play implicitly too
+  // often, even when authors only scheduled it once. The new rule:
+  // each scheduled animate window is a held pose that lasts until the
+  // next animate window starts. Authors are responsible for scheduling
+  // continuous coverage of the timeline.
+  //
+  // The per-clip `lingerSec` in CLIP_INFO and per-action `lingerSec`
+  // override are now historical / unused for the long-hold case —
+  // we just clamp clipTime to duration indefinitely. They're still
+  // referenced for the FREEZE_POSE_MAX_DURATION distinction (single-
+  // frame freeze poses are also held forever, same behavior).
+  //
+  // Note: between sec=0 and the FIRST scheduled animate, we have NO
+  // scheduled clip — `clip` stays at its initial default of
+  // Idle_Wardrobe. Authors should always schedule an animate starting
+  // at sec=0 to control the initial pose.
+  if (!clipLoop) {
+    const info = CLIP_INFO[clip];
+    if (info !== undefined && clipTime > info.duration) {
+      // Hold the end pose. Clamp clipTime to duration so the renderer
+      // plays the final keyframe and stays there. lingerOverride is
+      // accepted but no longer changes behavior — the linger is
+      // effectively infinite within the window.
+      void lingerOverride;
+      clipTime = info.duration;
     }
   }
 

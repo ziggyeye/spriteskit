@@ -12,6 +12,7 @@ import { widowmakerCasting } from './skits/scripts/widowmakerCasting';
 import { widowmaker } from './skits/scripts/widowmaker';
 import { drLena } from './skits/scripts/drLena';
 import { niceDate } from './skits/scripts/niceDate';
+import { dailyLenaPigs } from './skits/scripts/dailyLenaPigs';
 import { visemes as widowmakerVisemes } from './skits/scripts/widowmaker.visemes';
 import { visemes as lastSongVisemes } from './skits/scripts/lastSongRemembered.visemes';
 import { visemes as aiTakingMyJobVisemes } from './skits/scripts/aiTakingMyJob.visemes';
@@ -20,6 +21,7 @@ import { visemes as areYouOkayVisemes } from './skits/scripts/areYouOkay.visemes
 import { visemes as tedTalkVisemes } from './skits/scripts/tedTalk.visemes';
 import { visemes as drLenaVisemes } from './skits/scripts/drLena.visemes';
 import { visemes as niceDateVisemes } from './skits/scripts/niceDate.visemes';
+import { visemes as dailyLenaPigsVisemes } from './skits/scripts/dailyLenaPigs.visemes';
 import { withVisemes } from './skits/withVisemes';
 import type { Skit } from './skits/types';
 
@@ -39,6 +41,7 @@ const skits: Skit[] = [
   widowmakerCasting,
   withVisemes(widowmaker, widowmakerVisemes),
   withVisemes(niceDate, niceDateVisemes),
+  withVisemes(dailyLenaPigs, dailyLenaPigsVisemes),
   // drLena registered separately below with a zod schema so its
   // outfit + stage colors are tweakable in Remotion Studio.
 ];

@@ -268,27 +268,73 @@ seeded PRNG is required because Remotion renders frames out of
 order; non-seeded random would desync. Skip blinks ONLY if the
 character is silent + intentionally still (e.g. a frozen tableau).
 
-### 2. Animation variety (no clip repeated in adjacent windows)
+### 2. Animation variety — EACH CLIP USED AT MOST ONCE PER CHARACTER PER SKIT
 
-The default trap: scheduling `React_Stand_Discussion_1` for the
-baseline and only varying at "key" moments. Result: the character
-does the same arm-wave loop every 6 seconds and the video reads as
-samey. Rules:
+**Hard rule, no exceptions:** within a single skit, a given character
+animates each `clip` value at most one time. Even if the windows are
+60 seconds apart, the viewer notices the repeat as "samey," and the
+linger system can't hide it.
 
-- **Never use the same clip in two adjacent windows.** Vary every
-  6-10s in a long-form skit.
-- **Default to `Idle_Wardrobe` / `Wait_Shifting` / `Wait_Choosy`** as
-  the standing-and-talking baseline. They're calmer and more
-  "presenter-natural" than the React_Stand_Discussion clips.
-- **Use React_Stand_Discussion_1/2 at most 1-2x per 75s skit**, and
-  only when the line is doing genuinely arm-emphatic work.
-- **Match the clip's vibe to the beat's intent**: thinking-beat →
-  `React_Stand_Thinking`; authority beat → `React_CrossArms` or
-  `React_CrossedArms_Thinking`; transition → `Wait_Shifting`; setup
-  → `Wait_Choosy`; baseline → `Idle_Wardrobe`.
+For Lena's TED-talk register, this means budgeting from the ~13
+viable standing-pose clips:
 
-If your draft schedule has >2 Discussion_1/2 windows, REWORK before
-shipping the deliverable.
+`Idle_Wardrobe`, `Wait_Choosy`, `Wait_Shifting`,
+`React_Stand_Discussion_1`, `React_Stand_Discussion_2`,
+`React_Stand_ListeningNod`, `React_Stand_Thinking`,
+`React_Stand_YES`, `React_Stand_NO`, `React_CrossArms`,
+`React_CrossArms_NodYES`, `React_CrossArms_ShakeNO`,
+`React_CrossedArms_Thinking`, `React_ThumbsUp`.
+
+For a 75-90s skit that means **≤13 scheduled animation windows per
+character**. Schedule fewer, longer windows and rely on the
+linger system (see below) to hold each clip's end pose through the
+silence rather than scheduling a "filler idle" mid-window.
+
+**Match the clip's vibe to the beat's intent**: thinking-beat →
+`React_Stand_Thinking`; authority beat → `React_CrossArms` or
+`React_CrossedArms_Thinking`; transition → `Wait_Shifting`; setup
+→ `Wait_Choosy`; calm baseline → `Idle_Wardrobe`; gestural
+explanation → `React_Stand_Discussion_1/2`.
+
+If your draft schedule reuses ANY clip, REWORK before shipping.
+
+### 2b. Scheduled animate windows are "play once, then hold end pose forever"
+
+**Animate windows are holds.** When you schedule
+`{ clip: 'React_CrossArms', startSec: 53, endSec: 58 }`, the engine
+plays React_CrossArms's 0.8s animation once, then **holds the end
+pose (crossed arms) for the remaining 4.2s of the window**, until
+the next scheduled animate fires at sec=58.
+
+There is **NO automatic fallback to Idle_Wardrobe** when an
+animation finishes. The character stays in the clip's end pose
+until you explicitly schedule the next animate window. This means:
+
+- **Schedule continuous coverage of the timeline.** Every second of
+  the skit should be covered by some scheduled animate. Gaps =
+  whatever pose was last established, held.
+- **Window lengths = desired pose-hold duration.** A 5s window
+  means "play this gesture, then hold it for the rest of 5s."
+- **Authors control transitions.** If you want the character to
+  switch to a new pose, schedule a new animate. If you want them
+  frozen on a beat, just extend the previous window.
+- **No need to manually re-schedule Idle_Wardrobe between gestures.**
+  In fact, DON'T — Idle_Wardrobe is a real clip like any other,
+  subject to the no-repeats rule. Schedule it at most once per skit
+  if at all.
+
+The per-clip `lingerSec` in `CLIP_INFO` is now informational only —
+historically used to control the linger-then-idle-fallback timing.
+With the new semantics, all clips hold their end pose indefinitely
+within their scheduled window. The `lingerSec` field on the
+`animate` action is also informational; it doesn't change behavior.
+
+**Sketch a 75s skit's animations**: pick 8-12 clip changes total.
+Each window covers from "when do I want this pose to start showing"
+to "when do I want the NEXT pose to start." For Lena's TED-talk
+register, this typically means windows of 5-15 seconds each, with
+the chosen clip's gesture happening at the START of the window and
+the end pose held through the rest.
 
 ### 3. Eye-emotion windows per beat (not just default)
 

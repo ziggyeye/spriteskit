@@ -94,6 +94,127 @@ export type ClipName =
   | 'Bar_Walk_Plated';
 
 /**
+ * Per-clip animation metadata: actual clip duration (measured from
+ * the FBX) AND a "linger" hold time. When a one-shot clip finishes
+ * inside its scheduled window, the engine HOLDS its end pose for
+ * `lingerSec` before falling back to the idle. This makes characters
+ * read as "did the gesture, then paused in it" — natural human
+ * behavior — rather than snapping immediately to the next clip.
+ *
+ * Tuning principles for lingerSec:
+ * - **Long ambient idles** (Idle_Wardrobe, Wait_Choosy, Wait_Shifting):
+ *   short linger (~0.3s). These flow into the next clip; not meant to
+ *   sustain a held pose.
+ * - **Authority / punch poses** (CrossArms, CrossedArms_Thinking,
+ *   CrossArms_NodYES, CrossArms_ShakeNO): long linger (1.5-2.5s). The
+ *   character commits to the pose.
+ * - **Reaction beats** (Stand_Thinking, Stand_YES, Stand_NO, ThumbsUp,
+ *   Jump_Joy, Wave*): medium linger (0.8-1.2s). Held briefly so the
+ *   gesture reads.
+ * - **Talking gestures** (Discussion_1, Discussion_2, ListeningNod):
+ *   short linger (~0.4s). These are meant to flow.
+ * - **Locomotion** (Walk_Loop): zero linger (no held end pose).
+ * - **Freeze poses** (Wait_Pose, Stand_Pose, 0TPose): the
+ *   FREEZE_POSE_MAX_DURATION rule already holds them forever;
+ *   lingerSec irrelevant.
+ * - **Cafe-vocab clips**: medium linger (~1.0s) — they're
+ *   scene-establishing positions like "sat down on the sofa."
+ */
+export type ClipInfo = { duration: number; lingerSec: number };
+export const CLIP_INFO: Record<ClipName, ClipInfo> = {
+  // --- Lips-Pack ---
+  Walk_Loop: { duration: 0.800, lingerSec: 0 },
+  React_Stand_Discussion_1: { duration: 6.100, lingerSec: 0.4 },
+  React_Stand_Discussion_2: { duration: 5.467, lingerSec: 0.4 },
+  React_Stand_ListeningNod: { duration: 5.300, lingerSec: 0.4 },
+  React_Stand_Thinking: { duration: 1.333, lingerSec: 1.0 },
+  React_Stand_YES: { duration: 1.467, lingerSec: 1.0 },
+  React_Stand_NO: { duration: 1.667, lingerSec: 1.0 },
+  React_ThumbsUp: { duration: 0.733, lingerSec: 1.2 },
+  React_WaveHello: { duration: 1.467, lingerSec: 0.8 },
+  React_WaveBye: { duration: 2.200, lingerSec: 0.8 },
+  React_CrossArms: { duration: 0.800, lingerSec: 2.0 },
+  React_CrossArms_NodYES: { duration: 1.200, lingerSec: 1.8 },
+  React_CrossArms_ShakeNO: { duration: 1.467, lingerSec: 1.8 },
+  React_CrossedArms_Thinking: { duration: 1.733, lingerSec: 2.0 },
+  React_Handshake: { duration: 1.900, lingerSec: 0.5 },
+  React_Jump_Joy: { duration: 0.867, lingerSec: 0.8 },
+  '0TPose': { duration: 0.033, lingerSec: 0 },
+  // --- Characters-Pack ambient idles ---
+  Idle_Wardrobe: { duration: 6.800, lingerSec: 0.3 },
+  Wait_Shifting: { duration: 5.033, lingerSec: 0.3 },
+  Wait_Choosy: { duration: 6.000, lingerSec: 0.3 },
+  Wait_Pose: { duration: 0.033, lingerSec: 0 },
+  Stand_Pose: { duration: 0.033, lingerSec: 0 },
+  // --- Sofa ---
+  Sofa_Sit: { duration: 0.867, lingerSec: 1.5 },
+  Sofa_Sit_RootMotion: { duration: 0.867, lingerSec: 1.5 },
+  Sofa_Served: { duration: 1.667, lingerSec: 1.0 },
+  Sofa_Cup_Pickup: { duration: 0.867, lingerSec: 1.0 },
+  Sofa_Cup_Drink_Idle: { duration: 3.533, lingerSec: 0.5 },
+  Sofa_Cup_Drink_Loop: { duration: 1.800, lingerSec: 0.5 },
+  Sofa_Glass_Pickup: { duration: 0.867, lingerSec: 1.0 },
+  Sofa_Glass_Drink_Loop: { duration: 2.000, lingerSec: 0.5 },
+  Sofa_Food_Pickup: { duration: 0.867, lingerSec: 1.0 },
+  Sofa_Food_Eat_Loop: { duration: 2.133, lingerSec: 0.5 },
+  // --- Floor ---
+  Floor_Sit: { duration: 1.067, lingerSec: 1.5 },
+  Floor_Sit_RootMotion: { duration: 1.067, lingerSec: 1.5 },
+  Floor_GetUp: { duration: 0.867, lingerSec: 0.5 },
+  Floor_GetUp_RootMotion: { duration: 0.867, lingerSec: 0.5 },
+  Floor_Cup_Pickup: { duration: 1.267, lingerSec: 1.0 },
+  Floor_Cup_Drink_Loop: { duration: 1.667, lingerSec: 0.5 },
+  Floor_Glass_Pickup: { duration: 0.733, lingerSec: 1.0 },
+  Floor_Glass_Drink_Loop: { duration: 2.333, lingerSec: 0.5 },
+  Floor_Food_Pickup: { duration: 1.000, lingerSec: 1.0 },
+  Floor_Food_Eat_Loop: { duration: 1.733, lingerSec: 0.5 },
+  // --- TallChair ---
+  TallChair_Sit: { duration: 0.733, lingerSec: 1.5 },
+  TallChair_Sit_RootMotion: { duration: 0.733, lingerSec: 1.5 },
+  TallChair_Wait_Idle1: { duration: 2.800, lingerSec: 0.5 },
+  TallChair_Wait_Idle2: { duration: 2.167, lingerSec: 0.5 },
+  TallChair_Cup_Pickup: { duration: 1.133, lingerSec: 1.0 },
+  TallChair_Cup_Drink_Loop: { duration: 1.467, lingerSec: 0.5 },
+  'TallChair_Glass_Drink _Loop': { duration: 2.967, lingerSec: 0.5 },
+  TallChair_Food_Pickup: { duration: 0.500, lingerSec: 1.0 },
+  TallChair_Food_Eat_Loop: { duration: 1.800, lingerSec: 0.5 },
+  TallChair_Served_Happy: { duration: 2.133, lingerSec: 0.8 },
+  // --- Tray service ---
+  Tray_Pickup: { duration: 1.467, lingerSec: 0.8 },
+  Tray_Walk: { duration: 0.800, lingerSec: 0 },
+  Tray_Serve_Tall: { duration: 1.400, lingerSec: 0.8 },
+  Tray_Serve_Short: { duration: 1.533, lingerSec: 0.8 },
+  // --- Bar ---
+  Bar_Plated_Pickup: { duration: 0.933, lingerSec: 1.0 },
+  Bar_Walk_Plated: { duration: 0.800, lingerSec: 0 },
+};
+
+/**
+ * Convenience accessor — returns just the duration for backward
+ * compatibility with callers that don't need linger info.
+ */
+export const CLIP_DURATIONS: Record<ClipName, number> = Object.fromEntries(
+  Object.entries(CLIP_INFO).map(([k, v]) => [k, v.duration]),
+) as Record<ClipName, number>;
+
+/**
+ * The clip name used as the universal fallback idle when a scheduled
+ * one-shot finishes inside its window. Imported by Skit.tsx so its
+ * `resolveActorClip` can return the same fallback as Character3D's
+ * renderer-side resolveClipAndTime, keeping the two layers in sync.
+ */
+export const FALLBACK_IDLE_CLIP: ClipName = 'Idle_Wardrobe';
+
+/**
+ * Clips with duration <= this threshold are treated as deliberate
+ * freeze poses (single-keyframe sculptural beats) rather than
+ * animations. When they "end" inside their scheduled window, we hold
+ * the end pose forever instead of falling back to Idle_Wardrobe.
+ * Matches FREEZE_POSE_MAX_DURATION in Character3D.tsx.
+ */
+export const FREEZE_POSE_MAX_DURATION = 0.2;
+
+/**
  * Outfit slots. The base rig is `Character_Talking.fbx` (Lips-Pack)
  * which natively ships with: 1 top (Tshirt), 1 bottom (Pants_Long),
  * 2 hair styles, 2 beards.
