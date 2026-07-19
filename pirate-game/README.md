@@ -7,8 +7,9 @@ real-time combat with tactical pause, 30–60 minute permadeath runs.
 
 ## Status
 
-Pre-production — design document complete, no code yet. Next milestone (M1)
-is a grey-box combat prototype in Godot.
+M1 in progress — the design document is complete and the grey-box combat
+prototype lives in [`godot/`](godot/) (Godot 4.3+, see its README to run it).
+Three enemy engagements, full range-band/ammo/crew/fire-flood/boarding loop.
 
 ## Note on this folder
 
@@ -22,6 +23,6 @@ Planned layout:
 ```
 pirate-game/
 ├── GAME_DESIGN.md     full design document
-├── godot/             Godot 4 project (M1+)
-└── assets/            FAL-generated art (M3+)
+├── godot/             Godot 4 project — M1 combat grey-box
+└── assets/            FAL-generated art (M3+, not yet created)
 ```
