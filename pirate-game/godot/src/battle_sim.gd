@@ -445,8 +445,8 @@ func _tick_weapons(ship: Dictionary, dt: float) -> void:
 
 
 func _accuracy(shooter: Dictionary, target: Dictionary) -> float:
-	var base := [0.45, 0.65, 0.85, 0.9][band()]
-	var acc: float = base - evasion(target)
+	var base_acc: float = [0.45, 0.65, 0.85, 0.9][band()]
+	var acc: float = base_acc - evasion(target)
 	if gage_owner() == shooter["side"]:
 		acc += 0.05
 	return clampf(acc, 0.15, 0.95)
