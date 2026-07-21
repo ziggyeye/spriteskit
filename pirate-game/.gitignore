@@ -1,0 +1,8 @@
+# Generated art — regenerate with tools/generate_assets.py, don't commit binaries
+assets/**/*.png
+assets/**/*.jpg
+assets/**/*.webp
+
+# Never commit secrets
+.env
+*.key
